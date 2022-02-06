@@ -1,0 +1,52 @@
+package de.timesnake.game.hungergames.server;
+
+import de.timesnake.basic.bukkit.util.user.scoreboard.Sideboard;
+import de.timesnake.basic.bukkit.util.world.ExWorldBorder;
+import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
+import de.timesnake.game.hungergames.map.HungerGamesMap;
+import org.bukkit.Location;
+
+public class HungerGamesServer extends LoungeBridgeServer {
+
+    private static final HungerGamesServerManager server = HungerGamesServerManager.getInstance();
+
+    public static HungerGamesMap getMap() {
+        return server.getMap();
+    }
+
+    public static Sideboard getSideboard() {
+        return server.getSideboard();
+    }
+
+    public static Location nextSpawn() {
+        return server.nextSpawn();
+    }
+
+    public static void updateSideboardPlayerAmount() {
+        server.updateSideboardPlayerAmount();
+    }
+
+    public static ExWorldBorder getWorldBorder() {
+        return server.getWorldBorder();
+    }
+
+    public static void shrinkBorder() {
+        server.shrinkBorder();
+    }
+
+    public static Integer getRefillTime() {
+        return server.getRefillTime();
+    }
+
+    public static void setRefillTime(Integer time) {
+        server.setRefillTime(time);
+    }
+
+    public static Double getShrinkSpeed() {
+        return server.getShrinkSpeed();
+    }
+
+    public static void setShrinkSpeed(Double speed) {
+        server.setShrinkSpeed(speed);
+    }
+}

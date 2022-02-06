@@ -1,0 +1,12 @@
+main: de.timesnake.game.hungergames.main.GameHungerGames
+version: 1.0
+name: game-hungergames
+author: Mn
+api-version: 1.13
+depend: [ basic-lounge-bridge ]
+
+commands:
+  hg:
+    aliases:
+      - hungergames
+
