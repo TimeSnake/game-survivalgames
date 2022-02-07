@@ -26,6 +26,7 @@ import de.timesnake.game.hungergames.main.GameHungerGames;
 import de.timesnake.game.hungergames.map.HungerGamesMap;
 import de.timesnake.game.hungergames.user.HungerGamesUser;
 import de.timesnake.library.basic.util.statistics.Stat;
+import de.timesnake.library.extension.util.chat.Chat;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
@@ -177,7 +178,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
     @Override
     public void broadcastGameMessage(String message) {
-        Server.broadcastMessage(Server.getChat().getSenderPlugin(Plugin.HUNGER_GAMES) + message);
+        Server.broadcastMessage(Chat.getSenderPlugin(Plugin.HUNGER_GAMES) + message);
     }
 
     @Override
@@ -372,7 +373,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
             user.getPlayer().setInvulnerable(true);
         }
 
-        this.broadcastGameMessage(Server.getChat().getLongLineSeparator());
+        this.broadcastGameMessage(Chat.getLongLineSeparator());
 
         if (LoungeBridgeServer.getServerTeamAmount() == 0) {
             Iterator<User> it = Server.getInGameUsers().iterator();
@@ -398,7 +399,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
             }
         }
 
-        this.broadcastGameMessage(Server.getChat().getLongLineSeparator());
+        this.broadcastGameMessage(Chat.getLongLineSeparator());
 
         GameUser userKills = LoungeBridgeServer.getMostKills(((Collection) Server.getGameNotServiceUsers()));
         GameUser userLongestShot = LoungeBridgeServer.getLongestShot(((Collection) Server.getGameNotServiceUsers()));
@@ -411,7 +412,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
             this.broadcastGameMessage(ChatColor.WHITE + "Longest Shot: " + ChatColor.GOLD + userLongestShot.getLongestShot() + ChatColor.WHITE + " by " + userLongestShot.getChatName());
         }
 
-        this.broadcastGameMessage(Server.getChat().getLongLineSeparator());
+        this.broadcastGameMessage(Chat.getLongLineSeparator());
 
         LoungeBridgeServer.closeGame();
     }
