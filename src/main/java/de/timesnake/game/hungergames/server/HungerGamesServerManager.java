@@ -19,12 +19,12 @@ import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.basic.loungebridge.util.user.SpectatorUser;
 import de.timesnake.database.util.game.DbGame;
 import de.timesnake.database.util.game.DbMap;
-import de.timesnake.database.util.object.Status;
 import de.timesnake.game.hungergames.chat.Plugin;
 import de.timesnake.game.hungergames.item.HungerGamesItemManager;
 import de.timesnake.game.hungergames.main.GameHungerGames;
 import de.timesnake.game.hungergames.map.HungerGamesMap;
 import de.timesnake.game.hungergames.user.HungerGamesUser;
+import de.timesnake.library.basic.util.Status;
 import de.timesnake.library.basic.util.statistics.Stat;
 import de.timesnake.library.extension.util.chat.Chat;
 import org.bukkit.Instrument;
@@ -52,16 +52,16 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         return (HungerGamesServerManager) ServerManager.getInstance();
     }
 
-    public static final String SIDEBOARD_TITLE = "§6HungerGames";
+    public static final String SIDEBOARD_TITLE = "§6§lHungerGames";
     public static final Integer START_TIME = 1000;
 
     public static final Integer WORLD_BORDER_WARNING = 5;
     public static final Double WORLD_BORDER_DAMAGE = 1d;
     public static final Double MIN_BORDER_SIZE = 30d;
     public static final Double BORDER_SHRINKING_TIME_MULTIPLIER = 1.5d;
-    public static final Integer BORDER_DELAY_MIN_TO_0 = 3 * 60;
+    public static final Integer BORDER_DELAY_MIN_TO_0 = 2 * 60;
 
-    public static final double BOW_DAMAGE_MULTIPLIER = 0.5;
+    public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
 
     public static final Stat<Integer> WINS = Stat.Type.INTEGER.asStat("wins", "Wins", 0, 0, 2);
     public static final Stat<Float> WIN_CHANCE = Stat.Type.PERCENT.asStat("win_chance", "Win Chance", 0f, 0, 3);
