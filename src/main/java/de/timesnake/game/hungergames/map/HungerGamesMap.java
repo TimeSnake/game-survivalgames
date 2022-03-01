@@ -153,7 +153,19 @@ public class HungerGamesMap extends Map {
 
         if (this.getWorld() != null) {
             this.world.allowBlockBreak(false);
-            this.world.setBlockPlaceAllow(false);
+            this.world.allowEntityBlockBreak(false);
+            this.world.allowBlockPlace(false);
+            this.world.setExceptService(true);
+            this.world.allowFireSpread(false);
+            this.world.allowBlockIgnite(false);
+            this.world.allowEntityExplode(false);
+            this.world.allowBlockBurnUp(false);
+            this.world.allowFlintAndSteel(true);
+            this.world.allowFirecampInteraction(true);
+            this.world.allowFluidPlace(false);
+            this.world.allowFluidCollect(false);
+            this.world.allowEntityExplode(false);
+            this.world.allowPlaceInBlock(false);
 
             this.world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
             this.world.setGameRule(GameRule.DO_FIRE_TICK, false);
