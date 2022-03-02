@@ -161,7 +161,7 @@ public class HungerGamesMap extends Map {
             this.world.allowEntityExplode(false);
             this.world.allowBlockBurnUp(false);
             this.world.allowFlintAndSteel(true);
-            this.world.allowFirecampInteraction(true);
+            this.world.allowLightUpInteraction(true);
             this.world.allowFluidPlace(false);
             this.world.allowFluidCollect(false);
             this.world.allowEntityExplode(false);
