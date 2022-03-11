@@ -400,18 +400,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         }
 
         this.broadcastGameMessage(Chat.getLongLineSeparator());
-
-        GameUser userKills = LoungeBridgeServer.getMostKills(((Collection) Server.getGameNotServiceUsers()));
-        GameUser userLongestShot = LoungeBridgeServer.getLongestShot(((Collection) Server.getGameNotServiceUsers()));
-
-        if (userKills != null) {
-            this.broadcastGameMessage(ChatColor.WHITE + "Kills: " + ChatColor.GOLD + userKills.getKills() + ChatColor.WHITE + " by " + userKills.getChatName());
-        }
-
-        if (userLongestShot != null && userLongestShot.getLongestShot() > 0) {
-            this.broadcastGameMessage(ChatColor.WHITE + "Longest Shot: " + ChatColor.GOLD + userLongestShot.getLongestShot() + ChatColor.WHITE + " by " + userLongestShot.getChatName());
-        }
-
+        this.broadcastHighscore("Kills", ((Collection) Server.getGameNotServiceUsers()), 3, GameUser::getKills);
+        this.broadcastHighscore("Longest Shot", ((Collection) Server.getGameNotServiceUsers()), 3, u -> u.getLongestShot() > 0, GameUser::getLongestShot);
         this.broadcastGameMessage(Chat.getLongLineSeparator());
 
         LoungeBridgeServer.closeGame();
