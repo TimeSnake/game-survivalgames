@@ -6,7 +6,6 @@ import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.game.hungergames.chat.Plugin;
 import de.timesnake.game.hungergames.server.HungerGamesServer;
 import de.timesnake.game.hungergames.server.HungerGamesServerManager;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
@@ -40,7 +39,6 @@ public class HungerGamesUser extends GameUser {
             Server.printWarning(Plugin.HUNGER_GAMES, "Unable to set world border for user " + this.getName());
         }
 
-        this.getAttribute(Attribute.GENERIC_ARMOR).setBaseValue(0);
     }
 
     public void setSideboardTeam() {

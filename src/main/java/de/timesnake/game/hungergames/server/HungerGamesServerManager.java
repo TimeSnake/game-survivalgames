@@ -38,7 +38,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
@@ -230,26 +229,18 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         }
 
         if (peaceTime > 0) {
-            this.peaceTimeTask = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    switch (peaceTime) {
-                        case 60:
-                        case 30:
-                        case 10:
-                        case 5:
-                            broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends in " + ChatColor.VALUE + peaceTime + ChatColor.PUBLIC + " seconds");
-                            break;
-                        case 0:
-                            broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends " + ChatColor.WARNING + "now");
-                            Server.broadcastTitle("", "§cPeace time has ended!", Duration.ofSeconds(3));
-                            Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
-                            this.cancel();
-                            break;
+            this.peaceTimeTask = Server.runTaskTimerSynchrony(() -> {
+                switch (peaceTime) {
+                    case 60, 30, 10, 5 -> broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends in " + ChatColor.VALUE + peaceTime + ChatColor.PUBLIC + " seconds");
+                    case 0 -> {
+                        broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends " + ChatColor.WARNING + "now");
+                        Server.broadcastTitle("", "§cPeace time has ended!", Duration.ofSeconds(3));
+                        Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
+                        this.peaceTimeTask.cancel();
                     }
-                    peaceTime--;
                 }
-            }.runTaskTimer(GameHungerGames.getPlugin(), 0, 20);
+                peaceTime--;
+            }, 0, 20, GameHungerGames.getPlugin());
         }
 
     }
@@ -264,19 +255,14 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
         this.refillTask = Server.runTaskTimerSynchrony(() -> {
             switch (refillTime) {
-                case 60:
-                case 30:
-                case 10:
-                case 5:
-                    broadcastGameMessage(ChatColor.PUBLIC + "Chest refill in " + ChatColor.VALUE + refillTime + ChatColor.PUBLIC + " seconds");
-                    break;
-                case 0:
+                case 60, 30, 10, 5 -> broadcastGameMessage(ChatColor.PUBLIC + "Chest refill in " + ChatColor.VALUE + refillTime + ChatColor.PUBLIC + " seconds");
+                case 0 -> {
                     broadcastGameMessage(ChatColor.WARNING + "Chests were refilled");
                     Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
                     this.itemManager.fillMapChests(this.chestLevel);
                     this.chestLevel++;
                     refillTime = getMap().getRefillTime();
-                    break;
+                }
             }
 
             refillTime--;
