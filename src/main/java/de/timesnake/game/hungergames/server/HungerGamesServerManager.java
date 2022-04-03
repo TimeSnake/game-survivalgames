@@ -25,6 +25,7 @@ import de.timesnake.game.hungergames.main.GameHungerGames;
 import de.timesnake.game.hungergames.map.HungerGamesMap;
 import de.timesnake.game.hungergames.user.HungerGamesUser;
 import de.timesnake.library.basic.util.Status;
+import de.timesnake.library.basic.util.TimeCoins;
 import de.timesnake.library.basic.util.statistics.Stat;
 import de.timesnake.library.extension.util.chat.Chat;
 import org.bukkit.Instrument;
@@ -66,8 +67,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     public static final Stat<Float> WIN_CHANCE = Stat.Type.PERCENT.asStat("win_chance", "Win Chance", 0f, 0, 3);
     public static final Stat<Integer> KILLS = Stat.Type.INTEGER.asStat("kills", "Kills", 0, 1, 1);
 
-    public static final float WIN_COINS = 10;
-    public static final float KILL_COINS = 2;
+    public static final float WIN_COINS = 10 * TimeCoins.MULTIPLIER;
+    public static final float KILL_COINS = 3 * TimeCoins.MULTIPLIER;
 
     private boolean isRunning = false;
 
