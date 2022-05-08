@@ -63,9 +63,10 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
     public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
 
-    public static final Stat<Integer> WINS = Stat.Type.INTEGER.asStat("wins", "Wins", 0, 0, 2);
-    public static final Stat<Float> WIN_CHANCE = Stat.Type.PERCENT.asStat("win_chance", "Win Chance", 0f, 0, 3);
-    public static final Stat<Integer> KILLS = Stat.Type.INTEGER.asStat("kills", "Kills", 0, 1, 1);
+    public static final Stat<Integer> WINS = Stat.Type.INTEGER.asStat("wins", "Wins", 0, 10, 2, true, 0, 2);
+    public static final Stat<Float> WIN_CHANCE = Stat.Type.PERCENT.asStat("win_chance", "Win Chance", 0f, 10, 3,
+            false, 0, 0);
+    public static final Stat<Integer> KILLS = Stat.Type.INTEGER.asStat("kills", "Kills", 0, 10, 4, true, 1, 1);
 
     public static final float WIN_COINS = 10 * TimeCoins.MULTIPLIER;
     public static final float KILL_COINS = 3 * TimeCoins.MULTIPLIER;
