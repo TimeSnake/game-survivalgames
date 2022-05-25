@@ -29,7 +29,8 @@ public class GameHungerGames extends JavaPlugin {
 
         pm.registerEvents(HungerGamesServerManager.getInstance(), this);
 
-        Server.getCommandManager().addCommand(this, "hg", List.of("hungergames"), new HungerGamesCmd(), Plugin.HUNGER_GAMES);
+        Server.getCommandManager().addCommand(this, "hg", List.of("hungergames"), new HungerGamesCmd(),
+                Plugin.HUNGER_GAMES);
 
         HungerGamesServerManager.getInstance().onHungerGamesEnable();
     }

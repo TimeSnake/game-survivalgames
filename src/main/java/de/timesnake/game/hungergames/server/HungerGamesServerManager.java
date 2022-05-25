@@ -48,58 +48,43 @@ import java.util.Set;
 
 public class HungerGamesServerManager extends LoungeBridgeServerManager implements Listener {
 
-    public static HungerGamesServerManager getInstance() {
-        return (HungerGamesServerManager) ServerManager.getInstance();
-    }
-
     public static final String SIDEBOARD_TITLE = "§6§lHungerGames";
     public static final Integer START_TIME = 1000;
-
     public static final Integer WORLD_BORDER_WARNING = 5;
     public static final Double WORLD_BORDER_DAMAGE = 1d;
     public static final Double MIN_BORDER_SIZE = 30d;
     public static final Double BORDER_SHRINKING_TIME_MULTIPLIER = 1.5d;
     public static final Integer BORDER_DELAY_MIN_TO_0 = 2 * 60;
-
     public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
-
     public static final Stat<Integer> WINS = Stat.Type.INTEGER.asStat("wins", "Wins", 0, 10, 2, true, 0, 2);
     public static final Stat<Float> WIN_CHANCE = Stat.Type.PERCENT.asStat("win_chance", "Win Chance", 0f, 10, 3,
             false, 0, 0);
     public static final Stat<Integer> KILLS = Stat.Type.INTEGER.asStat("kills", "Kills", 0, 10, 4, true, 1, 1);
-
     public static final float WIN_COINS = 10 * TimeCoins.MULTIPLIER;
     public static final float KILL_COINS = 3 * TimeCoins.MULTIPLIER;
-
     private boolean isRunning = false;
-
     private HungerGamesItemManager itemManager;
-
     private Integer chestLevel = 0;
-
     private boolean stopAfterStart = false;
     private boolean stopped = false;
-
     private Sideboard sideboard;
     private Sideboard spectatorSideboard;
-
     private Integer spawnIndex = 1;
-
     private BukkitTask refillTask;
     private Integer refillTime;
-
     private BukkitTask peaceTimeTask;
     private Integer peaceTime;
-
     private BukkitTask borderTask;
     private boolean shrinkingBorder;
     private Double shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
     private ExWorldBorder worldBorder;
-
     private BukkitTask pvpHintTask;
-
     private User winnerUser;
     private Team winnerTeam;
+
+    public static HungerGamesServerManager getInstance() {
+        return (HungerGamesServerManager) ServerManager.getInstance();
+    }
 
     public void onHungerGamesEnable() {
         super.onLoungeBridgeEnable();
@@ -204,7 +189,9 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         }
 
         map.getWorld().getWorldBorder().reset();
-        this.worldBorder = new ExWorldBorder(map.getWorld(), map.getSpectatorSpawn().getX(), map.getSpectatorSpawn().getZ(), map.getRadius() * 2, WORLD_BORDER_WARNING, 0, WORLD_BORDER_DAMAGE, true);
+        this.worldBorder = new ExWorldBorder(map.getWorld(), map.getSpectatorSpawn().getX(),
+                map.getSpectatorSpawn().getZ(), map.getRadius() * 2, WORLD_BORDER_WARNING, 0, WORLD_BORDER_DAMAGE,
+                true);
     }
 
     @Override
@@ -233,7 +220,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         if (peaceTime > 0) {
             this.peaceTimeTask = Server.runTaskTimerSynchrony(() -> {
                 switch (peaceTime) {
-                    case 60, 30, 10, 5 -> broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends in " + ChatColor.VALUE + peaceTime + ChatColor.PUBLIC + " seconds");
+                    case 60, 30, 10, 5 ->
+                            broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends in " + ChatColor.VALUE + peaceTime + ChatColor.PUBLIC + " seconds");
                     case 0 -> {
                         broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends " + ChatColor.WARNING + "now");
                         Server.broadcastTitle("", "§cPeace time has ended!", Duration.ofSeconds(3));
@@ -257,7 +245,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
         this.refillTask = Server.runTaskTimerSynchrony(() -> {
             switch (refillTime) {
-                case 60, 30, 10, 5 -> broadcastGameMessage(ChatColor.PUBLIC + "Chest refill in " + ChatColor.VALUE + refillTime + ChatColor.PUBLIC + " seconds");
+                case 60, 30, 10, 5 ->
+                        broadcastGameMessage(ChatColor.PUBLIC + "Chest refill in " + ChatColor.VALUE + refillTime + ChatColor.PUBLIC + " seconds");
                 case 0 -> {
                     broadcastGameMessage(ChatColor.WARNING + "Chests were refilled");
                     Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
@@ -272,7 +261,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     }
 
     public void startBorderTask() {
-        this.borderTask = Server.runTaskLaterSynchrony(this::shrinkBorder, this.getMap().getTimeBorderShrink() * 20, GameHungerGames.getPlugin());
+        this.borderTask = Server.runTaskLaterSynchrony(this::shrinkBorder, this.getMap().getTimeBorderShrink() * 20,
+                GameHungerGames.getPlugin());
     }
 
     public void checkPlayerBorderShrink() {
@@ -293,7 +283,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         this.shrinkingBorder = true;
 
         Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
-        Server.runTaskLaterSynchrony(() -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10, GameHungerGames.getPlugin());
+        Server.runTaskLaterSynchrony(() -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
+                GameHungerGames.getPlugin());
         this.broadcastGameMessage(ChatColor.WARNING + "The border begins to shrink. Watch out!");
         this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
 
@@ -302,13 +293,15 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         }
 
         this.borderTask = Server.runTaskLaterSynchrony(() -> {
-            this.worldBorder.setSize(0, (int) (MIN_BORDER_SIZE * 20 * 2 * this.shrinkSpeed), false);
-            this.broadcastGameMessage(ChatColor.WARNING + "The border begins to shrink. Watch out!");
-        }, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20) + BORDER_DELAY_MIN_TO_0 * 20, GameHungerGames.getPlugin());
+                    this.worldBorder.setSize(0, (int) (MIN_BORDER_SIZE * 20 * 2 * this.shrinkSpeed), false);
+                    this.broadcastGameMessage(ChatColor.WARNING + "The border begins to shrink. Watch out!");
+                }, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20) + BORDER_DELAY_MIN_TO_0 * 20,
+                GameHungerGames.getPlugin());
     }
 
     public void startPvPHintTask() {
-        this.pvpHintTask = Server.runTaskTimerSynchrony(Server::broadcastPvPTypeMessage, 0, 20 * 60 * 3, GameHungerGames.getPlugin());
+        this.pvpHintTask = Server.runTaskTimerSynchrony(Server::broadcastPvPTypeMessage, 0, 20 * 60 * 3,
+                GameHungerGames.getPlugin());
     }
 
     @Override
@@ -377,7 +370,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
             Iterator<Team> it = LoungeBridgeServer.getNotEmptyGameTeams().iterator();
             this.winnerTeam = it.hasNext() ? it.next() : null;
             if (winnerTeam != null) {
-                Server.broadcastTitle(winnerTeam.getChatColor() + winnerTeam.getDisplayName() + ChatColor.PUBLIC + " wins", "", Duration.ofSeconds(5));
+                Server.broadcastTitle(winnerTeam.getChatColor() + winnerTeam.getDisplayName() + ChatColor.PUBLIC + " " +
+                        "wins", "", Duration.ofSeconds(5));
                 this.broadcastGameMessage(ChatColor.PUBLIC + "" + winnerTeam.getChatColor() + winnerTeam.getDisplayName() + ChatColor.PUBLIC + " wins");
                 for (User user : winnerTeam.getUsers()) {
                     user.addCoins(WIN_COINS, true);
@@ -389,7 +383,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
         this.broadcastGameMessage(Chat.getLongLineSeparator());
         this.broadcastHighscore("Kills", ((Collection) Server.getGameNotServiceUsers()), 3, GameUser::getKills);
-        this.broadcastHighscore("Longest Shot", ((Collection) Server.getGameNotServiceUsers()), 3, u -> u.getLongestShot() > 0, GameUser::getLongestShot);
+        this.broadcastHighscore("Longest Shot", ((Collection) Server.getGameNotServiceUsers()), 3,
+                u -> u.getLongestShot() > 0, GameUser::getLongestShot);
         this.broadcastGameMessage(Chat.getLongLineSeparator());
 
         LoungeBridgeServer.closeGame();
@@ -418,8 +413,10 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
         if (user.isInGame() && user.getLastDamager() != null) {
             User damager = user.getLastDamager().getDamager();
-            user.sendPluginMessage(Plugin.HUNGER_GAMES, damager.getChatName() + ChatColor.PERSONAL + " health: " + ((GameUser) damager).getHealthDisplay());
-            Server.printText(Plugin.HUNGER_GAMES, damager.getChatName() + ": " + ((GameUser) damager).getHealthDisplay());
+            user.sendPluginMessage(Plugin.HUNGER_GAMES,
+                    damager.getChatName() + ChatColor.PERSONAL + " health: " + ((GameUser) damager).getHealthDisplay());
+            Server.printText(Plugin.HUNGER_GAMES,
+                    damager.getChatName() + ": " + ((GameUser) damager).getHealthDisplay());
         }
     }
 
@@ -509,8 +506,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
         if (user.equals(this.winnerUser)) {
             user.increaseStat(WINS, 1);
-        }
-        else if (this.winnerTeam != null && this.winnerTeam.getUsers().contains(user)) {
+        } else if (this.winnerTeam != null && this.winnerTeam.getUsers().contains(user)) {
             user.increaseStat(WINS, 1);
         }
 
@@ -557,7 +553,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         this.shrinkSpeed = shrinkSpeed;
         if (this.shrinkingBorder) {
             if (this.worldBorder.getSize() >= MIN_BORDER_SIZE) {
-                this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.worldBorder.getSize() * this.shrinkSpeed * 20), true);
+                this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.worldBorder.getSize() * this.shrinkSpeed * 20),
+                        true);
             }
         }
     }

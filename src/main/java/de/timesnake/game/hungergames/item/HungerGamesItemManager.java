@@ -43,7 +43,8 @@ public class HungerGamesItemManager {
 
             items.add(item);
             this.itemsByLevel.put(item.getLevel(), items);
-            Server.printText(Plugin.HUNGER_GAMES, "Added item " + item.getItem().getType().name().toLowerCase() + " " + item.getItem().getAmount() + " chance " + item.getChance() + " level " + item.getLevel(), "Item");
+            Server.printText(Plugin.HUNGER_GAMES,
+                    "Added item " + item.getItem().getType().name().toLowerCase() + " " + item.getItem().getAmount() + " chance " + item.getChance() + " level " + item.getLevel(), "Item");
 
             Float chanceSum = this.chanceSumPerLevel.get(item.getLevel());
 
@@ -99,7 +100,8 @@ public class HungerGamesItemManager {
 
         chestInventory.clear();
 
-        int amount = this.random.nextInt(map.getMaxItemsPerChest() - map.getMinItemsPerChest() + 1) + map.getMinItemsPerChest();
+        int amount =
+                this.random.nextInt(map.getMaxItemsPerChest() - map.getMinItemsPerChest() + 1) + map.getMinItemsPerChest();
 
         Set<Integer> usedSlots = new HashSet<>();
 
