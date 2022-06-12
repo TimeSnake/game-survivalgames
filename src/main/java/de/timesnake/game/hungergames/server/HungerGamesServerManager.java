@@ -26,7 +26,10 @@ import de.timesnake.game.hungergames.map.HungerGamesMap;
 import de.timesnake.game.hungergames.user.HungerGamesUser;
 import de.timesnake.library.basic.util.Status;
 import de.timesnake.library.basic.util.TimeCoins;
-import de.timesnake.library.basic.util.statistics.Stat;
+import de.timesnake.library.basic.util.statistics.IntegerStat;
+import de.timesnake.library.basic.util.statistics.PercentStat;
+import de.timesnake.library.basic.util.statistics.StatPeriod;
+import de.timesnake.library.basic.util.statistics.StatType;
 import de.timesnake.library.extension.util.chat.Chat;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
@@ -56,12 +59,17 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     public static final Double BORDER_SHRINKING_TIME_MULTIPLIER = 1.5d;
     public static final Integer BORDER_DELAY_MIN_TO_0 = 2 * 60;
     public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
-    public static final Stat<Integer> WINS = Stat.Type.INTEGER.asStat("wins", "Wins", 0, 10, 2, true, 0, 2);
-    public static final Stat<Float> WIN_CHANCE = Stat.Type.PERCENT.asStat("win_chance", "Win Chance", 0f, 10, 3,
+    public static final StatType<Integer> WINS = new IntegerStat("wins", "Wins", 0, 10, 2, true, 0, 2);
+    public static final StatType<Float> WIN_CHANCE = new PercentStat("win_chance", "Win Chance", 0f, 10, 3,
             false, 0, 0);
-    public static final Stat<Integer> KILLS = Stat.Type.INTEGER.asStat("kills", "Kills", 0, 10, 4, true, 1, 1);
+    public static final StatType<Integer> KILLS = new IntegerStat("kills", "Kills", 0, 10, 4, true, 1, 1);
     public static final float WIN_COINS = 10 * TimeCoins.MULTIPLIER;
     public static final float KILL_COINS = 3 * TimeCoins.MULTIPLIER;
+
+    public static HungerGamesServerManager getInstance() {
+        return (HungerGamesServerManager) ServerManager.getInstance();
+    }
+
     private boolean isRunning = false;
     private HungerGamesItemManager itemManager;
     private Integer chestLevel = 0;
@@ -81,10 +89,6 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     private BukkitTask pvpHintTask;
     private User winnerUser;
     private Team winnerTeam;
-
-    public static HungerGamesServerManager getInstance() {
-        return (HungerGamesServerManager) ServerManager.getInstance();
-    }
 
     public void onHungerGamesEnable() {
         super.onLoungeBridgeEnable();
@@ -173,7 +177,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     }
 
     @Override
-    public void loadMap() {
+    public void onMapLoad() {
         HungerGamesMap map = this.getMap();
         this.itemManager.fillMapChests(this.chestLevel);
         this.chestLevel++;
@@ -195,7 +199,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     }
 
     @Override
-    public void startGame() {
+    public void onGameStart() {
         if (this.stopAfterStart) {
             this.stopGame();
         }
@@ -505,17 +509,24 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         super.saveGameUserStats(user);
 
         if (user.equals(this.winnerUser)) {
-            user.increaseStat(WINS, 1);
+            user.getStat(WINS).increaseAll(1);
         } else if (this.winnerTeam != null && this.winnerTeam.getUsers().contains(user)) {
-            user.increaseStat(WINS, 1);
+            user.getStat(WINS).increaseAll(1);
         }
 
-        user.increaseStat(KILLS, user.getKills());
-        user.setStat(WIN_CHANCE, user.getStat(WINS) / ((float) user.getStat(GAMES_PLAYED)));
+        user.getStat(KILLS).increaseAll(user.getKills());
+
+        for (StatPeriod period : StatPeriod.values()) {
+            Integer wins = user.getStat(WINS).get(period);
+            Integer gamesPlayed = user.getStat(GAMES_PLAYED).get(period);
+            user.getStat(WIN_CHANCE).set(period, wins / ((float) gamesPlayed));
+        }
+
     }
 
     public boolean isStop() {
-        return Server.getInGameUsers().size() <= 1 || (LoungeBridgeServer.getNotEmptyGameTeams().size() <= 1 && LoungeBridgeServer.getServerTeamAmount() > 0);
+        return Server.getInGameUsers().size() <= 1 || (LoungeBridgeServer.getNotEmptyGameTeams().size() <= 1
+                && LoungeBridgeServer.getServerTeamAmount() > 0);
     }
 
     public void updateSideboardPlayerAmount() {
@@ -560,7 +571,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     }
 
     @Override
-    public Set<Stat<?>> getStats() {
+    public Set<StatType<?>> getStats() {
         return Set.of(WINS, WIN_CHANCE, KILLS);
     }
 }
