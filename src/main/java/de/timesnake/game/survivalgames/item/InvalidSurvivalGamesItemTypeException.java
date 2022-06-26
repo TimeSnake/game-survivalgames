@@ -1,10 +1,10 @@
-package de.timesnake.game.hungergames.item;
+package de.timesnake.game.survivalgames.item;
 
-public class InvalidHungerGamesItemTypeException extends Exception {
+public class InvalidSurvivalGamesItemTypeException extends Exception {
 
     private final String type;
 
-    public InvalidHungerGamesItemTypeException(String type) {
+    public InvalidSurvivalGamesItemTypeException(String type) {
         this.type = type;
     }
 

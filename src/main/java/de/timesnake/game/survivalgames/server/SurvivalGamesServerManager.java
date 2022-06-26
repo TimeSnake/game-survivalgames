@@ -1,4 +1,4 @@
-package de.timesnake.game.hungergames.server;
+package de.timesnake.game.survivalgames.server;
 
 import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.ServerManager;
@@ -19,11 +19,11 @@ import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.basic.loungebridge.util.user.SpectatorUser;
 import de.timesnake.database.util.game.DbGame;
 import de.timesnake.database.util.game.DbMap;
-import de.timesnake.game.hungergames.chat.Plugin;
-import de.timesnake.game.hungergames.item.HungerGamesItemManager;
-import de.timesnake.game.hungergames.main.GameHungerGames;
-import de.timesnake.game.hungergames.map.HungerGamesMap;
-import de.timesnake.game.hungergames.user.HungerGamesUser;
+import de.timesnake.game.survivalgames.chat.Plugin;
+import de.timesnake.game.survivalgames.item.SurvivalGamesItemManager;
+import de.timesnake.game.survivalgames.main.GameSurvivalGames;
+import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
+import de.timesnake.game.survivalgames.user.SurvivalGamesUser;
 import de.timesnake.library.basic.util.Status;
 import de.timesnake.library.basic.util.TimeCoins;
 import de.timesnake.library.basic.util.statistics.IntegerStat;
@@ -34,6 +34,9 @@ import de.timesnake.library.extension.util.chat.Chat;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -49,9 +52,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public class HungerGamesServerManager extends LoungeBridgeServerManager implements Listener {
+public class SurvivalGamesServerManager extends LoungeBridgeServerManager implements Listener {
 
-    public static final String SIDEBOARD_TITLE = "§6§lHungerGames";
+    public static final String SIDEBOARD_TITLE = "§6§lSurvivalGames";
     public static final Integer START_TIME = 1000;
     public static final Integer WORLD_BORDER_WARNING = 5;
     public static final Double WORLD_BORDER_DAMAGE = 1d;
@@ -59,24 +62,25 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     public static final Double BORDER_SHRINKING_TIME_MULTIPLIER = 1.5d;
     public static final Integer BORDER_DELAY_MIN_TO_0 = 2 * 60;
     public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
-    public static final StatType<Integer> WINS = new IntegerStat("wins", "Wins", 0, 10, 2, true, 0, 2);
+    public static final StatType<Integer> WINS = new IntegerStat("wins", "Wins", 0, 10, 2, true, 0, 1);
     public static final StatType<Float> WIN_CHANCE = new PercentStat("win_chance", "Win Chance", 0f, 10, 3,
             false, 0, 0);
-    public static final StatType<Integer> KILLS = new IntegerStat("kills", "Kills", 0, 10, 4, true, 1, 1);
+    public static final StatType<Integer> KILLS = new IntegerStat("kills", "Kills", 0, 10, 4, true, 0, 2);
     public static final float WIN_COINS = 10 * TimeCoins.MULTIPLIER;
     public static final float KILL_COINS = 3 * TimeCoins.MULTIPLIER;
 
-    public static HungerGamesServerManager getInstance() {
-        return (HungerGamesServerManager) ServerManager.getInstance();
+    public static SurvivalGamesServerManager getInstance() {
+        return (SurvivalGamesServerManager) ServerManager.getInstance();
     }
 
     private boolean isRunning = false;
-    private HungerGamesItemManager itemManager;
+    private SurvivalGamesItemManager itemManager;
     private Integer chestLevel = 0;
     private boolean stopAfterStart = false;
     private boolean stopped = false;
     private Sideboard sideboard;
     private Sideboard spectatorSideboard;
+    private BossBar peaceTimeBar;
     private Integer spawnIndex = 1;
     private BukkitTask refillTask;
     private Integer refillTime;
@@ -92,9 +96,9 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
     public void onHungerGamesEnable() {
         super.onLoungeBridgeEnable();
-        this.itemManager = new HungerGamesItemManager();
+        this.itemManager = new SurvivalGamesItemManager();
 
-        this.sideboard = Server.getScoreboardManager().registerNewSideboard("hungergames", SIDEBOARD_TITLE);
+        this.sideboard = Server.getScoreboardManager().registerNewSideboard("survivalgames", SIDEBOARD_TITLE);
 
         if (LoungeBridgeServer.getServerTeamAmount() > 0) {
             this.sideboard.setScore(7, "§3§lTeam");
@@ -108,12 +112,14 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         this.sideboard.setScore(1, "§c§lKills");
         // kill amount
 
-        this.spectatorSideboard = Server.getScoreboardManager().registerNewSideboard("hgSpec", SIDEBOARD_TITLE);
+        this.spectatorSideboard = Server.getScoreboardManager().registerNewSideboard("sgSpec", SIDEBOARD_TITLE);
         this.spectatorSideboard.setScore(4, "§9§lPlayers");
         // player amount
         this.spectatorSideboard.setScore(2, "§r§f-----------");
         this.spectatorSideboard.setScore(1, "§c§lMap");
         // map
+
+        this.peaceTimeBar = Server.createBossBar("", BarColor.RED, BarStyle.SOLID);
 
         this.updateSideboardPlayerAmount();
 
@@ -123,8 +129,8 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     }
 
     @Override
-    public HungerGamesUser loadUser(Player player) {
-        return new HungerGamesUser(player);
+    public SurvivalGamesUser loadUser(Player player) {
+        return new SurvivalGamesUser(player);
     }
 
     @Override
@@ -132,7 +138,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         return new Game(dbGame, true) {
             @Override
             public Map loadMap(DbMap dbMap, boolean loadWorld) {
-                return new HungerGamesMap(dbMap);
+                return new SurvivalGamesMap(dbMap);
             }
         };
     }
@@ -141,7 +147,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         Location spawn = this.getMap().getLocation(this.spawnIndex);
         if (spawn == null) {
             if (this.spawnIndex == 1) {
-                Server.printError(Plugin.HUNGER_GAMES, "Too few spawns in map " + this.getMap().getName());
+                Server.printError(Plugin.SURVIVAL_GAMES, "Too few spawns in map " + this.getMap().getName());
                 return this.getMap().getSpectatorSpawn();
             }
             this.spawnIndex = 1;
@@ -152,13 +158,13 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     }
 
     @Override
-    public HungerGamesMap getMap() {
-        return (HungerGamesMap) super.getMap();
+    public SurvivalGamesMap getMap() {
+        return (SurvivalGamesMap) super.getMap();
     }
 
     @Override
     public Plugin getGamePlugin() {
-        return Plugin.HUNGER_GAMES;
+        return Plugin.SURVIVAL_GAMES;
     }
 
     @Override
@@ -168,7 +174,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
     @Override
     public void broadcastGameMessage(String message) {
-        Server.broadcastMessage(Chat.getSenderPlugin(Plugin.HUNGER_GAMES) + message);
+        Server.broadcastMessage(Chat.getSenderPlugin(Plugin.SURVIVAL_GAMES) + message);
     }
 
     @Override
@@ -178,10 +184,10 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
     @Override
     public void onMapLoad() {
-        HungerGamesMap map = this.getMap();
+        SurvivalGamesMap map = this.getMap();
         this.itemManager.fillMapChests(this.chestLevel);
         this.chestLevel++;
-        Server.printText(Plugin.HUNGER_GAMES, "Chests filled in map " + map.getName());
+        Server.printText(Plugin.SURVIVAL_GAMES, "Chests filled in map " + map.getName());
         map.getWorld().setTime(1000);
 
         if (this.worldBorder != null) {
@@ -196,6 +202,12 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         this.worldBorder = new ExWorldBorder(map.getWorld(), map.getSpectatorSpawn().getX(),
                 map.getSpectatorSpawn().getZ(), map.getRadius() * 2, WORLD_BORDER_WARNING, 0, WORLD_BORDER_DAMAGE,
                 true);
+
+        this.peaceTime = this.getMap().getPeaceTime();
+
+        this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + this.peaceTime + ChatColor.WHITE + " " +
+                "seconds");
+        this.peaceTimeBar.setProgress(1);
     }
 
     @Override
@@ -205,7 +217,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         }
         this.isRunning = true;
         for (User user : Server.getInGameUsers()) {
-            ((HungerGamesUser) user).startGame();
+            ((SurvivalGamesUser) user).startGame();
         }
         this.getMap().getWorld().setTime(START_TIME);
         this.startPeaceTime();
@@ -215,8 +227,6 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
     }
 
     public void startPeaceTime() {
-        this.peaceTime = this.getMap().getPeaceTime();
-
         if (!(peaceTime.equals(60) || peaceTime.equals(30) || peaceTime.equals(10) || peaceTime.equals(5) || peaceTime.equals(0))) {
             this.broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends in " + ChatColor.VALUE + this.peaceTime + ChatColor.PUBLIC + " seconds");
         }
@@ -230,11 +240,16 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
                         broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends " + ChatColor.WARNING + "now");
                         Server.broadcastTitle("", "§cPeace time has ended!", Duration.ofSeconds(3));
                         Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
+                        Server.getGameUsers().forEach(u -> u.removeBossBar(this.peaceTimeBar));
                         this.peaceTimeTask.cancel();
                     }
                 }
+
+                this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + peaceTime + ChatColor.WHITE + " " +
+                        "seconds");
+
                 peaceTime--;
-            }, 0, 20, GameHungerGames.getPlugin());
+            }, 0, 20, GameSurvivalGames.getPlugin());
         }
 
     }
@@ -261,12 +276,12 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
             }
 
             refillTime--;
-        }, 0, 20, GameHungerGames.getPlugin());
+        }, 0, 20, GameSurvivalGames.getPlugin());
     }
 
     public void startBorderTask() {
         this.borderTask = Server.runTaskLaterSynchrony(this::shrinkBorder, this.getMap().getTimeBorderShrink() * 20,
-                GameHungerGames.getPlugin());
+                GameSurvivalGames.getPlugin());
     }
 
     public void checkPlayerBorderShrink() {
@@ -288,7 +303,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
         Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
         Server.runTaskLaterSynchrony(() -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
-                GameHungerGames.getPlugin());
+                GameSurvivalGames.getPlugin());
         this.broadcastGameMessage(ChatColor.WARNING + "The border begins to shrink. Watch out!");
         this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
 
@@ -300,12 +315,12 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
                     this.worldBorder.setSize(0, (int) (MIN_BORDER_SIZE * 20 * 2 * this.shrinkSpeed), false);
                     this.broadcastGameMessage(ChatColor.WARNING + "The border begins to shrink. Watch out!");
                 }, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20) + BORDER_DELAY_MIN_TO_0 * 20,
-                GameHungerGames.getPlugin());
+                GameSurvivalGames.getPlugin());
     }
 
     public void startPvPHintTask() {
         this.pvpHintTask = Server.runTaskTimerSynchrony(Server::broadcastPvPTypeMessage, 0, 20 * 60 * 3,
-                GameHungerGames.getPlugin());
+                GameSurvivalGames.getPlugin());
     }
 
     @Override
@@ -417,16 +432,16 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
         if (user.isInGame() && user.getLastDamager() != null) {
             User damager = user.getLastDamager().getDamager();
-            user.sendPluginMessage(Plugin.HUNGER_GAMES,
+            user.sendPluginMessage(Plugin.SURVIVAL_GAMES,
                     damager.getChatName() + ChatColor.PERSONAL + " health: " + ((GameUser) damager).getHealthDisplay());
-            Server.printText(Plugin.HUNGER_GAMES,
+            Server.printText(Plugin.SURVIVAL_GAMES,
                     damager.getChatName() + ": " + ((GameUser) damager).getHealthDisplay());
         }
     }
 
     @EventHandler
     public void onUserRespawn(UserRespawnEvent e) {
-        HungerGamesUser user = ((HungerGamesUser) e.getUser());
+        SurvivalGamesUser user = ((SurvivalGamesUser) e.getUser());
         e.setRespawnLocation(this.getSpectatorSpawn());
         user.joinSpectator();
 
@@ -444,12 +459,12 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
 
     @EventHandler
     public void onUserDamageByUser(UserDamageByUserEvent e) {
-        HungerGamesUser user = ((HungerGamesUser) e.getUser());
+        SurvivalGamesUser user = ((SurvivalGamesUser) e.getUser());
         if (this.peaceTime == null || this.peaceTime > 0 || !this.isGameRunning()) {
             if (!LoungeBridgeServer.isTeamMateDamage()) {
-                if (!user.isTeamMate(((HungerGamesUser) e.getUserDamager()))) {
+                if (!user.isTeamMate(((SurvivalGamesUser) e.getUserDamager()))) {
                     if (this.isGameRunning()) {
-                        e.getUserDamager().sendPluginMessage(Plugin.HUNGER_GAMES, "Peace time is not over");
+                        e.getUserDamager().sendPluginMessage(Plugin.SURVIVAL_GAMES, "Peace time is not over");
                     }
                 }
             }
@@ -496,7 +511,7 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
         this.stopAfterStart = false;
         this.spawnIndex = 1;
         Server.getWorldManager().reloadWorld(this.getMap().getWorld());
-        Server.printText(Plugin.HUNGER_GAMES, "Reloaded world " + this.getMap().getWorld().getName());
+        Server.printText(Plugin.SURVIVAL_GAMES, "Reloaded world " + this.getMap().getWorld().getName());
     }
 
     @Override
@@ -568,6 +583,10 @@ public class HungerGamesServerManager extends LoungeBridgeServerManager implemen
                         true);
             }
         }
+    }
+
+    public BossBar getPeaceTimeBar() {
+        return peaceTimeBar;
     }
 
     @Override

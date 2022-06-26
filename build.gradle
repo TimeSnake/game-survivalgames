@@ -42,7 +42,7 @@ dependencies {
 
 group = 'de.timesnake'
 version = '1.0-SNAPSHOT'
-description = 'game-hungergames'
+description = 'game-survivalgames'
 java.sourceCompatibility = 1.17
 
 task sourceJar(type: Jar) {

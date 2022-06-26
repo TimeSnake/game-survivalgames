@@ -1,11 +1,11 @@
-package de.timesnake.game.hungergames.map;
+package de.timesnake.game.survivalgames.map;
 
 import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.game.util.Map;
 import de.timesnake.database.util.game.DbMap;
-import de.timesnake.game.hungergames.chat.Plugin;
+import de.timesnake.game.survivalgames.chat.Plugin;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,7 +17,7 @@ import org.bukkit.inventory.InventoryHolder;
 
 import java.util.*;
 
-public class HungerGamesMap extends Map {
+public class SurvivalGamesMap extends Map {
 
     public static final Integer SPECTATOR_SPAWN_INDEX = 0;
 
@@ -42,6 +42,23 @@ public class HungerGamesMap extends Map {
     public static final String NIGHT_VISION_TOKEN = "nightvision";
     public static final String NO_FALL_DAMAGE_TOKEN = "nofalldamage";
     public static final String CHEST_CHANCE_TOKEN = "chestChance=";
+
+    private static boolean isBlockAChest(ExBlock block) {
+        return block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType().equals(Material.TRAPPED_CHEST);
+    }
+
+    public static Inventory getInventoryOfChest(ExBlock block) {
+        if (block == null || block.getBlock() == null || !isBlockAChest(block)) {
+            return null;
+        }
+
+        if (!(block.getBlock().getState() instanceof InventoryHolder)) {
+            return null;
+        }
+
+        return ((InventoryHolder) block.getBlock().getState()).getInventory();
+    }
+
     private final Set<ExBlock> chests = new HashSet<>();
     protected Integer radius = DEFAULT_RADIUS;
     protected Integer minItemsPerChest = DEFAULT_MIN_ITEMS_PER_CHEST;
@@ -54,7 +71,7 @@ public class HungerGamesMap extends Map {
     protected boolean noFallDamage = false;
     private float chestChance = 1f;
 
-    public HungerGamesMap(DbMap map) {
+    public SurvivalGamesMap(DbMap map) {
         super(map, true);
 
         ArrayList<String> infos = map.getInfo();
@@ -67,7 +84,7 @@ public class HungerGamesMap extends Map {
                     try {
                         this.radius = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES, "Can not load radius of map " + super.name + ", " +
+                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load radius of map " + super.name + ", " +
                                 "info-radius is not an integer");
                     }
                 } else if (info.contains(MIN_ITEMS_TOKEN)) {
@@ -75,7 +92,7 @@ public class HungerGamesMap extends Map {
                     try {
                         this.minItemsPerChest = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES, "Can not load minItems of map " + super.name + ", " +
+                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load minItems of map " + super.name + ", " +
                                 "info-minItems is not an integer");
                     }
                 } else if (info.contains(MAX_ITEMS_TOKEN)) {
@@ -83,7 +100,7 @@ public class HungerGamesMap extends Map {
                     try {
                         this.maxItemsPerChest = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES, "Can not load maxItems of map " + super.name + ", " +
+                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load maxItems of map " + super.name + ", " +
                                 "info-maxItems is not an integer");
                     }
                 } else if (info.contains(PEACE_TIME_TOKEN)) {
@@ -91,7 +108,8 @@ public class HungerGamesMap extends Map {
                     try {
                         this.peaceTime = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES, "Can not load peace time of map " + super.name + ", " +
+                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load peace time of map " + super.name +
+                                ", " +
                                 "info peace time is not an integer");
                     }
                 } else if (info.contains(REFILL_TIME_TOKEN)) {
@@ -99,7 +117,8 @@ public class HungerGamesMap extends Map {
                     try {
                         this.refillTime = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES, "Can not load refill time of map " + super.name + "," +
+                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load refill time of map " + super.name +
+                                "," +
                                 " info refill time is not an integer");
                     }
                 } else if (info.contains(PLAYER_BORDER_SHRINK_TOKEN)) {
@@ -107,7 +126,7 @@ public class HungerGamesMap extends Map {
                     try {
                         this.playerBorderShrink = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES,
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
                                 "Can not load player border shrink of map " + super.name + ", info player border " +
                                         "shrink is not an integer");
                     }
@@ -116,7 +135,7 @@ public class HungerGamesMap extends Map {
                     try {
                         this.timeBorderShrink = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES,
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
                                 "Can not load time border shrink of map " + super.name + ", info time border shrink " +
                                         "is not an integer");
                     }
@@ -129,7 +148,7 @@ public class HungerGamesMap extends Map {
                     try {
                         this.chestChance = Float.parseFloat(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.HUNGER_GAMES,
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
                                 "Can not load time chest chance of map " + super.name + ", info time chest chance is " +
                                         "not a float");
                     }
@@ -137,7 +156,7 @@ public class HungerGamesMap extends Map {
             }
 
 
-            Server.printText(Plugin.HUNGER_GAMES, "Map " + super.name +
+            Server.printText(Plugin.SURVIVAL_GAMES, "Map " + super.name +
                     " radius: " + this.radius +
                     " minItems: " + this.minItemsPerChest +
                     " maxItems: " + this.maxItemsPerChest +
@@ -151,7 +170,7 @@ public class HungerGamesMap extends Map {
 
 
         } else {
-            Server.printWarning(Plugin.HUNGER_GAMES, "Info of map " + super.name + " is null, " + "loaded standard " +
+            Server.printWarning(Plugin.SURVIVAL_GAMES, "Info of map " + super.name + " is null, " + "loaded standard " +
                     "values");
         }
 
@@ -192,35 +211,20 @@ public class HungerGamesMap extends Map {
         this.initChests();
     }
 
-    private static boolean isBlockAChest(ExBlock block) {
-        return block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType().equals(Material.TRAPPED_CHEST);
-    }
-
-    public static Inventory getInventoryOfChest(ExBlock block) {
-        if (block == null || block.getBlock() == null || !isBlockAChest(block)) {
-            return null;
-        }
-
-        if (!(block.getBlock().getState() instanceof InventoryHolder)) {
-            return null;
-        }
-
-        return ((InventoryHolder) block.getBlock().getState()).getInventory();
-    }
-
     public void initChests() {
         if (super.world == null) {
-            Server.printWarning(Plugin.HUNGER_GAMES, "Can not load chests in map " + super.name + ", world is null");
+            Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load chests in map " + super.name + ", world is null");
             return;
         }
 
         if (this.getSpawn() == null) {
-            Server.printWarning(Plugin.HUNGER_GAMES, "Can not load chests in map " + super.name + ", spawn (number: " +
+            Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load chests in map " + super.name + ", spawn (number:" +
+                    " " +
                     "0) is null");
         }
 
         ExLocation spawn = this.getSpawn();
-        Server.printText(Plugin.HUNGER_GAMES,
+        Server.printText(Plugin.SURVIVAL_GAMES,
                 "Map center: " + spawn.getBlockX() + " " + spawn.getBlockY() + " " + spawn.getBlockZ());
 
         Random random = new Random();
@@ -242,7 +246,7 @@ public class HungerGamesMap extends Map {
             }
         }
 
-        Server.printText(Plugin.HUNGER_GAMES, "Map: " + super.name + " chests: " + this.chests.size(), "Map");
+        Server.printText(Plugin.SURVIVAL_GAMES, "Map: " + super.name + " chests: " + this.chests.size(), "Map");
     }
 
     public ExLocation getSpawn() {

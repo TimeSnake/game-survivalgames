@@ -1,16 +1,15 @@
-package de.timesnake.game.hungergames.server;
+package de.timesnake.game.survivalgames.server;
 
 import de.timesnake.basic.bukkit.util.user.scoreboard.Sideboard;
 import de.timesnake.basic.bukkit.util.world.ExWorldBorder;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
-import de.timesnake.game.hungergames.map.HungerGamesMap;
+import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import org.bukkit.Location;
+import org.bukkit.boss.BossBar;
 
-public class HungerGamesServer extends LoungeBridgeServer {
+public class SurvivalGamesServer extends LoungeBridgeServer {
 
-    private static final HungerGamesServerManager server = HungerGamesServerManager.getInstance();
-
-    public static HungerGamesMap getMap() {
+    public static SurvivalGamesMap getMap() {
         return server.getMap();
     }
 
@@ -49,4 +48,10 @@ public class HungerGamesServer extends LoungeBridgeServer {
     public static void setShrinkSpeed(Double speed) {
         server.setShrinkSpeed(speed);
     }
+
+    public static BossBar getPeaceTimeBar() {
+        return server.getPeaceTimeBar();
+    }
+
+    private static final SurvivalGamesServerManager server = SurvivalGamesServerManager.getInstance();
 }

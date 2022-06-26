@@ -1,16 +1,16 @@
-package de.timesnake.game.hungergames.user;
+package de.timesnake.game.survivalgames.user;
 
 import de.timesnake.basic.bukkit.util.chat.Argument;
 import de.timesnake.basic.bukkit.util.chat.ChatColor;
 import de.timesnake.basic.bukkit.util.chat.CommandListener;
 import de.timesnake.basic.bukkit.util.chat.Sender;
-import de.timesnake.game.hungergames.server.HungerGamesServer;
+import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.library.extension.util.cmd.Arguments;
 import de.timesnake.library.extension.util.cmd.ExCommand;
 
 import java.util.List;
 
-public class HungerGamesCmd implements CommandListener {
+public class SurvivalGamesCmd implements CommandListener {
 
     @Override
     public void onCommand(Sender sender, ExCommand<Sender, Argument> cmd, Arguments<Argument> args) {
@@ -31,7 +31,7 @@ public class HungerGamesCmd implements CommandListener {
                 String task = args.getString(1);
 
                 if (task.equalsIgnoreCase("begin")) {
-                    HungerGamesServer.shrinkBorder();
+                    SurvivalGamesServer.shrinkBorder();
                     sender.sendPluginMessage(ChatColor.PERSONAL + "Forced border shrink");
                 } else if (task.equalsIgnoreCase("speed")) {
                     if (!(args.isLengthEquals(3, true) && args.get(2).isDouble(true))) {
@@ -40,7 +40,7 @@ public class HungerGamesCmd implements CommandListener {
 
                     Double speed = args.get(2).toDouble();
 
-                    HungerGamesServer.setShrinkSpeed(speed);
+                    SurvivalGamesServer.setShrinkSpeed(speed);
                     sender.sendPluginMessage(ChatColor.PERSONAL + "Updated shrink speed to " + speed);
 
                 }
@@ -50,13 +50,13 @@ public class HungerGamesCmd implements CommandListener {
                     return;
                 }
 
-                if (HungerGamesServer.getRefillTime() < 60) {
-                    HungerGamesServer.setRefillTime(10);
+                if (SurvivalGamesServer.getRefillTime() < 60) {
+                    SurvivalGamesServer.setRefillTime(10);
                 } else {
-                    HungerGamesServer.setRefillTime(60);
+                    SurvivalGamesServer.setRefillTime(60);
                 }
 
-                sender.sendPluginMessage(ChatColor.PERSONAL + "Forced chest refill in " + ChatColor.VALUE + HungerGamesServer.getRefillTime() + "s");
+                sender.sendPluginMessage(ChatColor.PERSONAL + "Forced chest refill in " + ChatColor.VALUE + SurvivalGamesServer.getRefillTime() + "s");
                 break;
         }
     }
