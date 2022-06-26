@@ -1,41 +1,41 @@
-package de.timesnake.game.hungergames.item;
+package de.timesnake.game.survivalgames.item;
 
 import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.database.util.Database;
 import de.timesnake.database.util.hungergames.DbHungerGamesItem;
-import de.timesnake.game.hungergames.chat.Plugin;
-import de.timesnake.game.hungergames.map.HungerGamesMap;
-import de.timesnake.game.hungergames.server.HungerGamesServer;
+import de.timesnake.game.survivalgames.chat.Plugin;
+import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
+import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-public class HungerGamesItemManager {
+public class SurvivalGamesItemManager {
 
     private static final Double LEVEL_CHANCE = 0.5;
 
     private final Random random = new Random();
 
-    private final HashMap<Integer, LinkedList<HungerGamesItem>> itemsByLevel = new HashMap<>();
+    private final HashMap<Integer, LinkedList<SurvivalGamesItem>> itemsByLevel = new HashMap<>();
     private final HashMap<Integer, Float> chanceSumPerLevel = new HashMap<>();
 
     private final HashSet<ExBlock> filledChests = new HashSet<>();
 
-    public HungerGamesItemManager() {
+    public SurvivalGamesItemManager() {
 
         for (DbHungerGamesItem dbItem : Database.getHungerGames().getItems()) {
-            HungerGamesItem item;
+            SurvivalGamesItem item;
             try {
-                item = new HungerGamesItem(dbItem);
-            } catch (InvalidHungerGamesItemTypeException e) {
-                Server.printWarning(Plugin.HUNGER_GAMES, e.getMessage(), "Item");
+                item = new SurvivalGamesItem(dbItem);
+            } catch (InvalidSurvivalGamesItemTypeException e) {
+                Server.printWarning(Plugin.SURVIVAL_GAMES, e.getMessage(), "Item");
                 continue;
             }
 
-            LinkedList<HungerGamesItem> items = this.itemsByLevel.get(item.getLevel());
+            LinkedList<SurvivalGamesItem> items = this.itemsByLevel.get(item.getLevel());
 
             if (items == null) {
                 items = new LinkedList<>();
@@ -43,7 +43,7 @@ public class HungerGamesItemManager {
 
             items.add(item);
             this.itemsByLevel.put(item.getLevel(), items);
-            Server.printText(Plugin.HUNGER_GAMES,
+            Server.printText(Plugin.SURVIVAL_GAMES,
                     "Added item " + item.getItem().getType().name().toLowerCase() + " " + item.getItem().getAmount() + " chance " + item.getChance() + " level " + item.getLevel(), "Item");
 
             Float chanceSum = this.chanceSumPerLevel.get(item.getLevel());
@@ -60,16 +60,16 @@ public class HungerGamesItemManager {
 
     }
 
-    public HashMap<Integer, LinkedList<HungerGamesItem>> getItemsByLevel() {
+    public HashMap<Integer, LinkedList<SurvivalGamesItem>> getItemsByLevel() {
         return itemsByLevel;
     }
 
-    public LinkedList<HungerGamesItem> getItems(Integer level) {
+    public LinkedList<SurvivalGamesItem> getItems(Integer level) {
         return itemsByLevel.get(level);
     }
 
     public void fillMapChests(int chestLevel) {
-        HungerGamesMap map = HungerGamesServer.getMap();
+        SurvivalGamesMap map = SurvivalGamesServer.getMap();
         if (map != null) {
             if (chestLevel == 0) {
                 this.filledChests.clear();
@@ -94,9 +94,9 @@ public class HungerGamesItemManager {
 
     public void fillInventory(Integer level, ExBlock block) {
 
-        HungerGamesMap map = HungerGamesServer.getMap();
+        SurvivalGamesMap map = SurvivalGamesServer.getMap();
 
-        Inventory chestInventory = HungerGamesMap.getInventoryOfChest(block);
+        Inventory chestInventory = SurvivalGamesMap.getInventoryOfChest(block);
 
         chestInventory.clear();
 
@@ -140,14 +140,14 @@ public class HungerGamesItemManager {
     private ItemStack getRandomItem(Integer level) {
         if (this.chanceSumPerLevel.get(level) == null) {
             if (level.equals(0)) {
-                Server.printError(Plugin.HUNGER_GAMES, "Too few items", "Item");
+                Server.printError(Plugin.SURVIVAL_GAMES, "Too few items", "Item");
                 return null;
             } else {
                 return this.getRandomItem(level - 1);
             }
         }
         double random = this.random.nextFloat() * this.chanceSumPerLevel.get(level);
-        for (HungerGamesItem item : this.getItems(level)) {
+        for (SurvivalGamesItem item : this.getItems(level)) {
             if (random < item.getChance()) {
                 return item.getItem();
             }
