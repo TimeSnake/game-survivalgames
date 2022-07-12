@@ -195,7 +195,6 @@ public class SurvivalGamesMap extends Map {
             this.world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
             this.world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
             this.world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
-            this.world.setGameRule(GameRule.DO_FIRE_TICK, false);
             this.world.setAutoSave(false);
 
             for (Entity entity : this.world.getEntities()) {
