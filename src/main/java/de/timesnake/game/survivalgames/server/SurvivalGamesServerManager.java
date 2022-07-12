@@ -247,6 +247,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager implem
 
                 this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + peaceTime + ChatColor.WHITE + " " +
                         "seconds");
+                this.peaceTimeBar.setProgress(peaceTime / ((double) this.getMap().getPeaceTime()));
 
                 peaceTime--;
             }, 0, 20, GameSurvivalGames.getPlugin());
@@ -510,6 +511,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager implem
         this.stopped = false;
         this.stopAfterStart = false;
         this.spawnIndex = 1;
+        this.shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
         Server.getWorldManager().reloadWorld(this.getMap().getWorld());
         Server.printText(Plugin.SURVIVAL_GAMES, "Reloaded world " + this.getMap().getWorld().getName());
     }
