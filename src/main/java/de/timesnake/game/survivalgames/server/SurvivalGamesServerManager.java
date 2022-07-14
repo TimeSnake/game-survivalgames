@@ -10,15 +10,16 @@ import de.timesnake.basic.bukkit.util.user.event.UserDeathEvent;
 import de.timesnake.basic.bukkit.util.user.event.UserRespawnEvent;
 import de.timesnake.basic.bukkit.util.user.scoreboard.Sideboard;
 import de.timesnake.basic.bukkit.util.world.ExWorldBorder;
-import de.timesnake.basic.game.util.Game;
 import de.timesnake.basic.game.util.Map;
 import de.timesnake.basic.game.util.Team;
+import de.timesnake.basic.game.util.TmpGame;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServerManager;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.basic.loungebridge.util.user.SpectatorUser;
 import de.timesnake.database.util.game.DbGame;
 import de.timesnake.database.util.game.DbMap;
+import de.timesnake.database.util.game.DbTmpGame;
 import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.item.SurvivalGamesItemManager;
 import de.timesnake.game.survivalgames.main.GameSurvivalGames;
@@ -52,7 +53,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public class SurvivalGamesServerManager extends LoungeBridgeServerManager implements Listener {
+public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGame> implements Listener {
 
     public static final String SIDEBOARD_TITLE = "§6§lSurvivalGames";
     public static final Integer START_TIME = 1000;
@@ -134,8 +135,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager implem
     }
 
     @Override
-    protected Game loadGame(DbGame dbGame, boolean loadWorlds) {
-        return new Game(dbGame, true) {
+    protected TmpGame loadGame(DbGame dbGame, boolean loadWorlds) {
+        return new TmpGame((DbTmpGame) dbGame, true) {
             @Override
             public Map loadMap(DbMap dbMap, boolean loadWorld) {
                 return new SurvivalGamesMap(dbMap);
@@ -481,7 +482,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager implem
     }
 
     @EventHandler
-    public void d(InventoryOpenEvent e) {
+    public void onInventoryOpen(InventoryOpenEvent e) {
         if (e.getView().getTopInventory().getType().equals(InventoryType.ANVIL)) {
             e.setCancelled(true);
             e.getPlayer().closeInventory();
