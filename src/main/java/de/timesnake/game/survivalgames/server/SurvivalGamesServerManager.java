@@ -179,11 +179,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     @Override
-    public void prepareGame() {
-        this.updateMapOnSideboard();
-    }
-
-    @Override
     public void onMapLoad() {
         SurvivalGamesMap map = this.getMap();
         this.itemManager.fillMapChests(this.chestLevel);
@@ -209,6 +204,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + this.peaceTime + ChatColor.WHITE + " " +
                 "seconds");
         this.peaceTimeBar.setProgress(1);
+
+        this.updateMapOnSideboard();
     }
 
     @Override
@@ -335,7 +332,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         }
     }
 
-    public void stopGame() {
+    @Override
+    public void onGameStop() {
         if (this.stopped) {
             return;
         }
@@ -407,8 +405,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.broadcastHighscore("Longest Shot", ((Collection) Server.getGameNotServiceUsers()), 3,
                 u -> u.getLongestShot() > 0, GameUser::getLongestShot);
         this.broadcastGameMessage(Chat.getLongLineSeparator());
-
-        LoungeBridgeServer.closeGame();
     }
 
     @EventHandler
@@ -508,7 +504,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     @Override
-    public void resetGame() {
+    public void onGameReset() {
         this.stopped = false;
         this.stopAfterStart = false;
         this.spawnIndex = 1;
