@@ -27,11 +27,14 @@ import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.user.SurvivalGamesUser;
 import de.timesnake.library.basic.util.Status;
 import de.timesnake.library.basic.util.TimeCoins;
+import de.timesnake.library.basic.util.chat.ExTextColor;
 import de.timesnake.library.basic.util.statistics.IntegerStat;
 import de.timesnake.library.basic.util.statistics.PercentStat;
 import de.timesnake.library.basic.util.statistics.StatPeriod;
 import de.timesnake.library.basic.util.statistics.StatType;
 import de.timesnake.library.extension.util.chat.Chat;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
@@ -174,8 +177,14 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     @Override
+    @Deprecated
     public void broadcastGameMessage(String message) {
-        Server.broadcastMessage(Chat.getSenderPlugin(Plugin.SURVIVAL_GAMES) + message);
+        Server.broadcastMessage(Plugin.SURVIVAL_GAMES, message);
+    }
+
+    @Override
+    public void broadcastGameMessage(Component message) {
+        Server.broadcastMessage(Plugin.SURVIVAL_GAMES, message);
     }
 
     @Override
@@ -226,17 +235,21 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     public void startPeaceTime() {
         if (!(peaceTime.equals(60) || peaceTime.equals(30) || peaceTime.equals(10) || peaceTime.equals(5) || peaceTime.equals(0))) {
-            this.broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends in " + ChatColor.VALUE + this.peaceTime + ChatColor.PUBLIC + " seconds");
+            this.broadcastGameMessage(Component.text("Peace time ends in ", ExTextColor.PUBLIC)
+                    .append(Component.text(this.peaceTime + "s", ExTextColor.VALUE)));
         }
 
         if (peaceTime > 0) {
             this.peaceTimeTask = Server.runTaskTimerSynchrony(() -> {
                 switch (peaceTime) {
-                    case 60, 30, 10, 5 ->
-                            broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends in " + ChatColor.VALUE + peaceTime + ChatColor.PUBLIC + " seconds");
+                    case 60, 30, 10, 5 -> broadcastGameMessage(Component.text("Peace time ends in ", ExTextColor.PUBLIC)
+                            .append(Component.text(peaceTime + "s", ExTextColor.VALUE)));
                     case 0 -> {
-                        broadcastGameMessage(ChatColor.PUBLIC + "Peace time ends " + ChatColor.WARNING + "now");
-                        Server.broadcastTitle("", "§cPeace time has ended!", Duration.ofSeconds(3));
+                        broadcastGameMessage(Component.text("Peace time ends ", ExTextColor.PUBLIC)
+                                .append(Component.text("now", ExTextColor.WARNING)));
+                        Server.broadcastTitle(Component.empty(),
+                                Component.text("Peace time has ended!", ExTextColor.WARNING),
+                                Duration.ofSeconds(3));
                         Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
                         Server.getGameUsers().forEach(u -> u.removeBossBar(this.peaceTimeBar));
                         this.peaceTimeTask.cancel();
@@ -263,10 +276,10 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
         this.refillTask = Server.runTaskTimerSynchrony(() -> {
             switch (refillTime) {
-                case 60, 30, 10, 5 ->
-                        broadcastGameMessage(ChatColor.PUBLIC + "Chest refill in " + ChatColor.VALUE + refillTime + ChatColor.PUBLIC + " seconds");
+                case 60, 30, 10, 5 -> broadcastGameMessage(Component.text("Chest refill in ", ExTextColor.PUBLIC)
+                        .append(Component.text(refillTime + "s", ExTextColor.VALUE)));
                 case 0 -> {
-                    broadcastGameMessage(ChatColor.WARNING + "Chests were refilled");
+                    broadcastGameMessage(Component.text("Chests were refilled", ExTextColor.WARNING));
                     Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
                     this.itemManager.fillMapChests(this.chestLevel);
                     this.chestLevel++;
@@ -303,7 +316,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
         Server.runTaskLaterSynchrony(() -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
                 GameSurvivalGames.getPlugin());
-        this.broadcastGameMessage(ChatColor.WARNING + "The border begins to shrink. Watch out!");
+        this.broadcastGameMessage(Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
         this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
 
         if (this.borderTask != null) {
@@ -312,7 +325,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
         this.borderTask = Server.runTaskLaterSynchrony(() -> {
                     this.worldBorder.setSize(0, (int) (MIN_BORDER_SIZE * 20 * 2 * this.shrinkSpeed), false);
-                    this.broadcastGameMessage(ChatColor.WARNING + "The border begins to shrink. Watch out!");
+                    this.broadcastGameMessage(Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
                 }, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20) + BORDER_DELAY_MIN_TO_0 * 20,
                 GameSurvivalGames.getPlugin());
     }
@@ -379,24 +392,27 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
             Iterator<User> it = Server.getInGameUsers().iterator();
             this.winnerUser = it.hasNext() ? it.next() : null;
             if (winnerUser != null) {
-                Server.broadcastTitle(winnerUser.getChatName() + ChatColor.PUBLIC + " wins", "", Duration.ofSeconds(5));
-                this.broadcastGameMessage(ChatColor.PUBLIC + winnerUser.getChatName() + ChatColor.PUBLIC + " wins");
+                Server.broadcastTitle(winnerUser.getChatNameComponent()
+                        .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(), Duration.ofSeconds(5));
+                this.broadcastGameMessage(winnerUser.getChatNameComponent()
+                        .append(Component.text(" wins", ExTextColor.PUBLIC)));
                 winnerUser.addCoins(WIN_COINS, true);
             } else {
-                this.broadcastGameMessage(ChatColor.PUBLIC + "Game ended");
+                this.broadcastGameMessage(Component.text("Game ended", ExTextColor.PUBLIC));
             }
         } else {
             Iterator<Team> it = LoungeBridgeServer.getNotEmptyGameTeams().iterator();
             this.winnerTeam = it.hasNext() ? it.next() : null;
             if (winnerTeam != null) {
-                Server.broadcastTitle(winnerTeam.getChatColor() + winnerTeam.getDisplayName() + ChatColor.PUBLIC + " " +
-                        "wins", "", Duration.ofSeconds(5));
-                this.broadcastGameMessage(ChatColor.PUBLIC + "" + winnerTeam.getChatColor() + winnerTeam.getDisplayName() + ChatColor.PUBLIC + " wins");
+                Server.broadcastTitle(Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
+                        .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(), Duration.ofSeconds(5));
+                this.broadcastGameMessage(Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
+                        .append(Component.text(" wins", ExTextColor.PUBLIC)));
                 for (User user : winnerTeam.getUsers()) {
                     user.addCoins(WIN_COINS, true);
                 }
             } else {
-                this.broadcastGameMessage(ChatColor.PUBLIC + "Game ended");
+                this.broadcastGameMessage(Component.text("Game ended", ExTextColor.PUBLIC));
             }
         }
 
@@ -430,10 +446,13 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
         if (user.isInGame() && user.getLastDamager() != null) {
             User damager = user.getLastDamager().getDamager();
-            user.sendPluginMessage(Plugin.SURVIVAL_GAMES,
-                    damager.getChatName() + ChatColor.PERSONAL + " health: " + ((GameUser) damager).getHealthDisplay());
+            user.sendPluginMessage(Plugin.SURVIVAL_GAMES, damager.getChatNameComponent()
+                    .append(Component.text(" health: ", ExTextColor.PERSONAL))
+                    .append(((GameUser) damager).getHealthDisplay().color(ExTextColor.VALUE)));
             Server.printText(Plugin.SURVIVAL_GAMES,
-                    damager.getChatName() + ": " + ((GameUser) damager).getHealthDisplay());
+                    PlainTextComponentSerializer.plainText().serialize(damager.getChatNameComponent()
+                            .append(Component.text(": ", ExTextColor.PERSONAL))
+                            .append(((GameUser) damager).getHealthDisplay().color(ExTextColor.VALUE))));
         }
     }
 
@@ -462,7 +481,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
             if (!LoungeBridgeServer.isTeamMateDamage()) {
                 if (!user.isTeamMate(((SurvivalGamesUser) e.getUserDamager()))) {
                     if (this.isGameRunning()) {
-                        e.getUserDamager().sendPluginMessage(Plugin.SURVIVAL_GAMES, "Peace time is not over");
+                        e.getUserDamager().sendPluginMessage(Plugin.SURVIVAL_GAMES,
+                                Component.text("Peace time is not over", ExTextColor.WARNING));
                     }
                 }
             }
