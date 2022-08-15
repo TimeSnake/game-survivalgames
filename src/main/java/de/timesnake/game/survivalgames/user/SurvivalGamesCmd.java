@@ -1,12 +1,13 @@
 package de.timesnake.game.survivalgames.user;
 
 import de.timesnake.basic.bukkit.util.chat.Argument;
-import de.timesnake.basic.bukkit.util.chat.ChatColor;
 import de.timesnake.basic.bukkit.util.chat.CommandListener;
 import de.timesnake.basic.bukkit.util.chat.Sender;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
+import de.timesnake.library.basic.util.chat.ExTextColor;
 import de.timesnake.library.extension.util.cmd.Arguments;
 import de.timesnake.library.extension.util.cmd.ExCommand;
+import net.kyori.adventure.text.Component;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class SurvivalGamesCmd implements CommandListener {
 
                 if (task.equalsIgnoreCase("begin")) {
                     SurvivalGamesServer.shrinkBorder();
-                    sender.sendPluginMessage(ChatColor.PERSONAL + "Forced border shrink");
+                    sender.sendPluginMessage(Component.text("Forced border shrink", ExTextColor.PERSONAL));
                 } else if (task.equalsIgnoreCase("speed")) {
                     if (!(args.isLengthEquals(3, true) && args.get(2).isDouble(true))) {
                         return;
@@ -41,7 +42,8 @@ public class SurvivalGamesCmd implements CommandListener {
                     Double speed = args.get(2).toDouble();
 
                     SurvivalGamesServer.setShrinkSpeed(speed);
-                    sender.sendPluginMessage(ChatColor.PERSONAL + "Updated shrink speed to " + speed);
+                    sender.sendPluginMessage(Component.text("Updated shrink speed to ", ExTextColor.PERSONAL)
+                            .append(Component.text(speed, ExTextColor.VALUE)));
 
                 }
                 break;
@@ -56,7 +58,8 @@ public class SurvivalGamesCmd implements CommandListener {
                     SurvivalGamesServer.setRefillTime(60);
                 }
 
-                sender.sendPluginMessage(ChatColor.PERSONAL + "Forced chest refill in " + ChatColor.VALUE + SurvivalGamesServer.getRefillTime() + "s");
+                sender.sendPluginMessage(Component.text("Forced chest refill in ", ExTextColor.PERSONAL)
+                        .append(Component.text(SurvivalGamesServer.getRefillTime() + "s", ExTextColor.VALUE)));
                 break;
         }
     }
