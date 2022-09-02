@@ -393,7 +393,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
             this.winnerUser = it.hasNext() ? it.next() : null;
             if (winnerUser != null) {
                 Server.broadcastTitle(winnerUser.getChatNameComponent()
-                        .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(), Duration.ofSeconds(5));
+                                .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(),
+                        Duration.ofSeconds(5));
                 this.broadcastGameMessage(winnerUser.getChatNameComponent()
                         .append(Component.text(" wins", ExTextColor.PUBLIC)));
                 winnerUser.addCoins(WIN_COINS, true);
@@ -405,7 +406,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
             this.winnerTeam = it.hasNext() ? it.next() : null;
             if (winnerTeam != null) {
                 Server.broadcastTitle(Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
-                        .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(), Duration.ofSeconds(5));
+                                .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(),
+                        Duration.ofSeconds(5));
                 this.broadcastGameMessage(Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
                         .append(Component.text(" wins", ExTextColor.PUBLIC)));
                 for (User user : winnerTeam.getUsers()) {
@@ -417,8 +419,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         }
 
         this.broadcastGameMessage(Chat.getLongLineSeparator());
-        this.broadcastHighscore("Kills", ((Collection) Server.getGameNotServiceUsers()), 3, GameUser::getKills);
-        this.broadcastHighscore("Longest Shot", ((Collection) Server.getGameNotServiceUsers()), 3,
+        this.broadcastHighscore("Kills", ((Collection) Server.getInOutGameUsers()), 3, GameUser::getKills);
+        this.broadcastHighscore("Longest Shot", ((Collection) Server.getInOutGameUsers()), 3,
                 u -> u.getLongestShot() > 0, GameUser::getLongestShot);
         this.broadcastGameMessage(Chat.getLongLineSeparator());
     }
