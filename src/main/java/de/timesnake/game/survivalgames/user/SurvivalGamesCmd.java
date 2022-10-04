@@ -5,6 +5,8 @@ import de.timesnake.basic.bukkit.util.chat.CommandListener;
 import de.timesnake.basic.bukkit.util.chat.Sender;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.library.basic.util.chat.ExTextColor;
+import de.timesnake.library.extension.util.chat.Code;
+import de.timesnake.library.extension.util.chat.Plugin;
 import de.timesnake.library.extension.util.cmd.Arguments;
 import de.timesnake.library.extension.util.cmd.ExCommand;
 import net.kyori.adventure.text.Component;
@@ -13,6 +15,9 @@ import java.util.List;
 
 public class SurvivalGamesCmd implements CommandListener {
 
+    private Code.Permission borderPerm;
+    private Code.Permission refillPerm;
+
     @Override
     public void onCommand(Sender sender, ExCommand<Sender, Argument> cmd, Arguments<Argument> args) {
         if (!args.isLengthHigherEquals(1, true)) {
@@ -20,17 +25,14 @@ public class SurvivalGamesCmd implements CommandListener {
         }
 
         switch (args.getString(0).toLowerCase()) {
-            case "border":
-                if (!sender.hasPermission("hungergames.border", 2409)) {
+            case "border" -> {
+                if (!sender.hasPermission(this.borderPerm)) {
                     return;
                 }
-
                 if (!args.isLengthHigherEquals(2, true)) {
                     return;
                 }
-
                 String task = args.getString(1);
-
                 if (task.equalsIgnoreCase("begin")) {
                     SurvivalGamesServer.shrinkBorder();
                     sender.sendPluginMessage(Component.text("Forced border shrink", ExTextColor.PERSONAL));
@@ -46,21 +48,19 @@ public class SurvivalGamesCmd implements CommandListener {
                             .append(Component.text(speed, ExTextColor.VALUE)));
 
                 }
-                break;
-            case "refill":
-                if (!sender.hasPermission("hungergames.refill", 2410)) {
+            }
+            case "refill" -> {
+                if (!sender.hasPermission(this.refillPerm)) {
                     return;
                 }
-
                 if (SurvivalGamesServer.getRefillTime() < 60) {
                     SurvivalGamesServer.setRefillTime(10);
                 } else {
                     SurvivalGamesServer.setRefillTime(60);
                 }
-
                 sender.sendPluginMessage(Component.text("Forced chest refill in ", ExTextColor.PERSONAL)
                         .append(Component.text(SurvivalGamesServer.getRefillTime() + "s", ExTextColor.VALUE)));
-                break;
+            }
         }
     }
 
@@ -80,5 +80,11 @@ public class SurvivalGamesCmd implements CommandListener {
             }
         }
         return List.of();
+    }
+
+    @Override
+    public void loadCodes(Plugin plugin) {
+        this.borderPerm = plugin.createPermssionCode("svg", "survivalgames.border");
+        this.refillPerm = plugin.createPermssionCode("svg", "survivalgames.refill");
     }
 }
