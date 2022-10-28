@@ -21,6 +21,7 @@ package de.timesnake.game.survivalgames.map;
 import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
+import de.timesnake.basic.bukkit.util.world.ExWorld;
 import de.timesnake.basic.game.util.Map;
 import de.timesnake.database.util.game.DbMap;
 import de.timesnake.game.survivalgames.chat.Plugin;
@@ -193,20 +194,20 @@ public class SurvivalGamesMap extends Map {
         }
 
         if (this.getWorld() != null) {
-            this.world.allowBlockBreak(false);
-            this.world.allowEntityBlockBreak(false);
-            this.world.allowBlockPlace(false);
+            this.world.restrict(ExWorld.Restriction.BLOCK_BREAK, true);
+            this.world.restrict(ExWorld.Restriction.ENTITY_BLOCK_BREAK, true);
+            this.world.restrict(ExWorld.Restriction.BLOCK_PLACE, true);
             this.world.setExceptService(true);
-            this.world.allowFireSpread(false);
-            this.world.allowBlockIgnite(false);
-            this.world.allowEntityExplode(false);
-            this.world.allowBlockBurnUp(false);
-            this.world.allowFlintAndSteel(true);
-            this.world.allowLightUpInteraction(true);
-            this.world.allowFluidPlace(false);
-            this.world.allowFluidCollect(false);
-            this.world.allowEntityExplode(false);
-            this.world.allowPlaceInBlock(false);
+            this.world.restrict(ExWorld.Restriction.FIRE_SPREAD, true);
+            this.world.restrict(ExWorld.Restriction.BLOCK_IGNITE, true);
+            this.world.restrict(ExWorld.Restriction.ENTITY_EXPLODE, true);
+            this.world.restrict(ExWorld.Restriction.BLOCK_BURN_UP, true);
+            this.world.restrict(ExWorld.Restriction.FLINT_AND_STEEL, false);
+            this.world.restrict(ExWorld.Restriction.LIGHT_UP_INTERACTION, false);
+            this.world.restrict(ExWorld.Restriction.FLUID_PLACE, true);
+            this.world.restrict(ExWorld.Restriction.FLUID_COLLECT, true);
+            this.world.restrict(ExWorld.Restriction.ENTITY_EXPLODE, true);
+            this.world.restrict(ExWorld.Restriction.PLACE_IN_BLOCK, true);
 
             this.world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
             this.world.setGameRule(GameRule.DO_FIRE_TICK, false);
