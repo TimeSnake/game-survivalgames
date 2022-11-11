@@ -1,5 +1,5 @@
 /*
- * game-survivalgames.main
+ * timesnake.game-survivalgames.main
  * Copyright (C) 2022 timesnake
  *
  * This program is free software; you can redistribute it and/or
@@ -120,7 +120,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         super.onLoungeBridgeEnable();
         this.itemManager = new SurvivalGamesItemManager();
 
-        this.sideboard = Server.getScoreboardManager().registerNewSideboard("survivalgames", SIDEBOARD_TITLE);
+        this.sideboard = Server.getScoreboardManager().registerSideboard("survivalgames", SIDEBOARD_TITLE);
 
         if (LoungeBridgeServer.getServerTeamAmount() > 0) {
             this.sideboard.setScore(7, "§3§lTeam");
@@ -134,7 +134,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.sideboard.setScore(1, "§c§lKills");
         // kill amount
 
-        this.spectatorSideboard = Server.getScoreboardManager().registerNewSideboard("sgSpec", SIDEBOARD_TITLE);
+        this.spectatorSideboard = Server.getScoreboardManager().registerSideboard("sgSpec", SIDEBOARD_TITLE);
         this.spectatorSideboard.setScore(4, "§9§lPlayers");
         // player amount
         this.spectatorSideboard.setScore(2, "§r§f-----------");
@@ -169,7 +169,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         Location spawn = this.getMap().getLocation(this.spawnIndex);
         if (spawn == null) {
             if (this.spawnIndex == 1) {
-                Server.printError(Plugin.SURVIVAL_GAMES, "Too few spawns in map " + this.getMap().getName());
+                Server.printWarning(Plugin.SURVIVAL_GAMES, "Too few spawns in map " + this.getMap().getName());
                 return this.getMap().getSpectatorSpawn();
             }
             this.spawnIndex = 1;
