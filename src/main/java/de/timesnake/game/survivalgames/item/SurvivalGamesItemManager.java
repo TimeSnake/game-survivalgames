@@ -1,5 +1,5 @@
 /*
- * game-survivalgames.main
+ * workspace.game-survivalgames.main
  * Copyright (C) 2022 timesnake
  *
  * This program is free software; you can redistribute it and/or
@@ -158,7 +158,7 @@ public class SurvivalGamesItemManager {
     private ItemStack getRandomItem(Integer level) {
         if (this.chanceSumPerLevel.get(level) == null) {
             if (level.equals(0)) {
-                Server.printError(Plugin.SURVIVAL_GAMES, "Too few items", "Item");
+                Server.printWarning(Plugin.SURVIVAL_GAMES, "Too few items", "Item");
                 return null;
             } else {
                 return this.getRandomItem(level - 1);
