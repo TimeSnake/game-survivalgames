@@ -1,5 +1,5 @@
 /*
- * game-survivalgames.main
+ * workspace.game-survivalgames.main
  * Copyright (C) 2022 timesnake
  *
  * This program is free software; you can redistribute it and/or
@@ -22,11 +22,10 @@ import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.bukkit.util.world.ExWorld;
-import de.timesnake.basic.game.util.Map;
+import de.timesnake.basic.game.util.game.Map;
 import de.timesnake.database.util.game.DbMap;
 import de.timesnake.game.survivalgames.chat.Plugin;
 import org.bukkit.GameRule;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -287,7 +286,7 @@ public class SurvivalGamesMap extends Map {
         return chests;
     }
 
-    public Location getSpectatorSpawn() {
+    public ExLocation getSpectatorSpawn() {
         return super.getLocation(SPECTATOR_SPAWN_INDEX);
     }
 
