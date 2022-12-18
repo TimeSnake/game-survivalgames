@@ -92,7 +92,7 @@ public class SurvivalGamesMap extends Map {
     public SurvivalGamesMap(DbMap map) {
         super(map, true);
 
-        ArrayList<String> infos = map.getInfo();
+        List<String> infos = map.getInfo();
         if (info != null) {
 
             for (String info : infos) {
