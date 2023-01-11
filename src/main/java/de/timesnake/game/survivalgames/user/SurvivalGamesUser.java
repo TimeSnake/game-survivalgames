@@ -25,7 +25,7 @@ public class SurvivalGamesUser extends GameUser {
         SurvivalGamesServer.updateSideboardPlayerAmount();
         this.setDefault();
         this.teleport(SurvivalGamesServer.nextSpawn());
-        this.lockLocation(true);
+        this.lockLocation();
         this.setSideboard(SurvivalGamesServer.getSideboard());
         this.setBossBar(SurvivalGamesServer.getPeaceTimeBar());
 
@@ -42,14 +42,16 @@ public class SurvivalGamesUser extends GameUser {
         if (SurvivalGamesServer.getWorldBorder() != null) {
             SurvivalGamesServer.getWorldBorder().addUser(this);
         } else {
-            Server.printWarning(Plugin.SURVIVAL_GAMES, "Unable to set world border for user " + this.getName());
+            Server.printWarning(Plugin.SURVIVAL_GAMES,
+                    "Unable to set world border for user " + this.getName());
         }
 
     }
 
     public void setSideboardTeam() {
         if (this.getTeam() != null) {
-            this.setSideboardScore(6, this.getTeam().getDisplayName());
+            this.setSideboardScore(6,
+                    this.getTeam().getChatColor() + this.getTeam().getDisplayName());
         }
     }
 
