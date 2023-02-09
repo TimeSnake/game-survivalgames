@@ -13,17 +13,17 @@ import de.timesnake.library.extension.util.chat.Code;
 import de.timesnake.library.extension.util.chat.Plugin;
 import de.timesnake.library.extension.util.cmd.Arguments;
 import de.timesnake.library.extension.util.cmd.ExCommand;
-import net.kyori.adventure.text.Component;
-
 import java.util.List;
+import net.kyori.adventure.text.Component;
 
 public class SurvivalGamesCmd implements CommandListener {
 
-    private Code.Permission borderPerm;
-    private Code.Permission refillPerm;
+    private Code borderPerm;
+    private Code refillPerm;
 
     @Override
-    public void onCommand(Sender sender, ExCommand<Sender, Argument> cmd, Arguments<Argument> args) {
+    public void onCommand(Sender sender, ExCommand<Sender, Argument> cmd,
+            Arguments<Argument> args) {
         if (!args.isLengthHigherEquals(1, true)) {
             return;
         }
@@ -39,7 +39,8 @@ public class SurvivalGamesCmd implements CommandListener {
                 String task = args.getString(1);
                 if (task.equalsIgnoreCase("begin")) {
                     SurvivalGamesServer.shrinkBorder();
-                    sender.sendPluginMessage(Component.text("Forced border shrink", ExTextColor.PERSONAL));
+                    sender.sendPluginMessage(
+                            Component.text("Forced border shrink", ExTextColor.PERSONAL));
                 } else if (task.equalsIgnoreCase("speed")) {
                     if (!(args.isLengthEquals(3, true) && args.get(2).isDouble(true))) {
                         return;
@@ -48,8 +49,9 @@ public class SurvivalGamesCmd implements CommandListener {
                     Double speed = args.get(2).toDouble();
 
                     SurvivalGamesServer.setShrinkSpeed(speed);
-                    sender.sendPluginMessage(Component.text("Updated shrink speed to ", ExTextColor.PERSONAL)
-                            .append(Component.text(speed, ExTextColor.VALUE)));
+                    sender.sendPluginMessage(
+                            Component.text("Updated shrink speed to ", ExTextColor.PERSONAL)
+                                    .append(Component.text(speed, ExTextColor.VALUE)));
 
                 }
             }
@@ -62,14 +64,17 @@ public class SurvivalGamesCmd implements CommandListener {
                 } else {
                     SurvivalGamesServer.setRefillTime(60);
                 }
-                sender.sendPluginMessage(Component.text("Forced chest refill in ", ExTextColor.PERSONAL)
-                        .append(Component.text(SurvivalGamesServer.getRefillTime() + "s", ExTextColor.VALUE)));
+                sender.sendPluginMessage(
+                        Component.text("Forced chest refill in ", ExTextColor.PERSONAL)
+                                .append(Component.text(SurvivalGamesServer.getRefillTime() + "s",
+                                        ExTextColor.VALUE)));
             }
         }
     }
 
     @Override
-    public List<String> getTabCompletion(ExCommand<Sender, Argument> cmd, Arguments<Argument> args) {
+    public List<String> getTabCompletion(ExCommand<Sender, Argument> cmd,
+            Arguments<Argument> args) {
         if (args.getLength() == 1) {
             return List.of("border", "refill");
         } else if (args.getLength() == 2) {
@@ -88,7 +93,7 @@ public class SurvivalGamesCmd implements CommandListener {
 
     @Override
     public void loadCodes(Plugin plugin) {
-        this.borderPerm = plugin.createPermssionCode("svg", "survivalgames.border");
-        this.refillPerm = plugin.createPermssionCode("svg", "survivalgames.refill");
+        this.borderPerm = plugin.createPermssionCode("survivalgames.border");
+        this.refillPerm = plugin.createPermssionCode("survivalgames.refill");
     }
 }
