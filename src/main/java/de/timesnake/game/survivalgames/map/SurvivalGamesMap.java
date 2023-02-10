@@ -11,6 +11,11 @@ import de.timesnake.basic.bukkit.util.world.ExWorld;
 import de.timesnake.basic.game.util.game.Map;
 import de.timesnake.database.util.game.DbMap;
 import de.timesnake.game.survivalgames.chat.Plugin;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -18,8 +23,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-
-import java.util.*;
 
 public class SurvivalGamesMap extends Map {
 
@@ -48,7 +51,8 @@ public class SurvivalGamesMap extends Map {
     public static final String CHEST_CHANCE_TOKEN = "chestChance=";
 
     private static boolean isBlockAChest(ExBlock block) {
-        return block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType().equals(Material.TRAPPED_CHEST);
+        return block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType()
+                .equals(Material.TRAPPED_CHEST);
     }
 
     public static Inventory getInventoryOfChest(ExBlock block) {
@@ -88,42 +92,47 @@ public class SurvivalGamesMap extends Map {
                     try {
                         this.radius = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load radius of map " + super.name + ", " +
-                                "info-radius is not an integer");
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
+                                "Can not load radius of map " + super.name + ", " +
+                                        "info-radius is not an integer");
                     }
                 } else if (info.contains(MIN_ITEMS_TOKEN)) {
                     info = info.replace(MIN_ITEMS_TOKEN, "");
                     try {
                         this.minItemsPerChest = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load minItems of map " + super.name + ", " +
-                                "info-minItems is not an integer");
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
+                                "Can not load minItems of map " + super.name + ", " +
+                                        "info-minItems is not an integer");
                     }
                 } else if (info.contains(MAX_ITEMS_TOKEN)) {
                     info = info.replace(MAX_ITEMS_TOKEN, "");
                     try {
                         this.maxItemsPerChest = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load maxItems of map " + super.name + ", " +
-                                "info-maxItems is not an integer");
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
+                                "Can not load maxItems of map " + super.name + ", " +
+                                        "info-maxItems is not an integer");
                     }
                 } else if (info.contains(PEACE_TIME_TOKEN)) {
                     info = info.replace(PEACE_TIME_TOKEN, "");
                     try {
                         this.peaceTime = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load peace time of map " + super.name +
-                                ", " +
-                                "info peace time is not an integer");
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
+                                "Can not load peace time of map " + super.name +
+                                        ", " +
+                                        "info peace time is not an integer");
                     }
                 } else if (info.contains(REFILL_TIME_TOKEN)) {
                     info = info.replace(REFILL_TIME_TOKEN, "");
                     try {
                         this.refillTime = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
-                        Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load refill time of map " + super.name +
-                                "," +
-                                " info refill time is not an integer");
+                        Server.printWarning(Plugin.SURVIVAL_GAMES,
+                                "Can not load refill time of map " + super.name +
+                                        "," +
+                                        " info refill time is not an integer");
                     }
                 } else if (info.contains(PLAYER_BORDER_SHRINK_TOKEN)) {
                     info = info.replace(PLAYER_BORDER_SHRINK_TOKEN, "");
@@ -131,7 +140,8 @@ public class SurvivalGamesMap extends Map {
                         this.playerBorderShrink = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
                         Server.printWarning(Plugin.SURVIVAL_GAMES,
-                                "Can not load player border shrink of map " + super.name + ", info player border " +
+                                "Can not load player border shrink of map " + super.name
+                                        + ", info player border " +
                                         "shrink is not an integer");
                     }
                 } else if (info.contains(TIME_BORDER_SHRINK_TOKEN)) {
@@ -140,7 +150,8 @@ public class SurvivalGamesMap extends Map {
                         this.timeBorderShrink = Integer.parseInt(info);
                     } catch (NumberFormatException e) {
                         Server.printWarning(Plugin.SURVIVAL_GAMES,
-                                "Can not load time border shrink of map " + super.name + ", info time border shrink " +
+                                "Can not load time border shrink of map " + super.name
+                                        + ", info time border shrink " +
                                         "is not an integer");
                     }
                 } else if (info.contains(NIGHT_VISION_TOKEN)) {
@@ -153,12 +164,12 @@ public class SurvivalGamesMap extends Map {
                         this.chestChance = Float.parseFloat(info);
                     } catch (NumberFormatException e) {
                         Server.printWarning(Plugin.SURVIVAL_GAMES,
-                                "Can not load time chest chance of map " + super.name + ", info time chest chance is " +
+                                "Can not load time chest chance of map " + super.name
+                                        + ", info time chest chance is " +
                                         "not a float");
                     }
                 }
             }
-
 
             Server.printText(Plugin.SURVIVAL_GAMES, "Map " + super.name +
                     " radius: " + this.radius +
@@ -174,8 +185,9 @@ public class SurvivalGamesMap extends Map {
 
 
         } else {
-            Server.printWarning(Plugin.SURVIVAL_GAMES, "Info of map " + super.name + " is null, " + "loaded standard " +
-                    "values");
+            Server.printWarning(Plugin.SURVIVAL_GAMES,
+                    "Info of map " + super.name + " is null, " + "loaded standard " +
+                            "values");
         }
 
         if (this.getWorld() != null) {
@@ -206,29 +218,29 @@ public class SurvivalGamesMap extends Map {
                     entity.remove();
                 }
             }
-
-            Server.getWorldManager().backupWorld(this.getWorld());
         }
-
 
         this.initChests();
     }
 
     public void initChests() {
         if (super.world == null) {
-            Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load chests in map " + super.name + ", world is null");
+            Server.printWarning(Plugin.SURVIVAL_GAMES,
+                    "Can not load chests in map " + super.name + ", world is null");
             return;
         }
 
         if (this.getSpawn() == null) {
-            Server.printWarning(Plugin.SURVIVAL_GAMES, "Can not load chests in map " + super.name + ", spawn (number:" +
-                    " " +
-                    "0) is null");
+            Server.printWarning(Plugin.SURVIVAL_GAMES,
+                    "Can not load chests in map " + super.name + ", spawn (number:" +
+                            " " +
+                            "0) is null");
         }
 
         ExLocation spawn = this.getSpawn();
         Server.printText(Plugin.SURVIVAL_GAMES,
-                "Map center: " + spawn.getBlockX() + " " + spawn.getBlockY() + " " + spawn.getBlockZ());
+                "Map center: " + spawn.getBlockX() + " " + spawn.getBlockY() + " "
+                        + spawn.getBlockZ());
 
         Random random = new Random();
 
@@ -249,7 +261,8 @@ public class SurvivalGamesMap extends Map {
             }
         }
 
-        Server.printText(Plugin.SURVIVAL_GAMES, "Map: " + super.name + " chests: " + this.chests.size(), "Map");
+        Server.printText(Plugin.SURVIVAL_GAMES,
+                "Map: " + super.name + " chests: " + this.chests.size(), "Map");
     }
 
     public ExLocation getSpawn() {
