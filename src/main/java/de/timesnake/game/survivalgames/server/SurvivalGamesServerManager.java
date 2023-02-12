@@ -32,12 +32,16 @@ import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.user.SurvivalGamesUser;
 import de.timesnake.library.basic.util.Status;
 import de.timesnake.library.basic.util.TimeCoins;
-import de.timesnake.library.basic.util.chat.ExTextColor;
 import de.timesnake.library.basic.util.statistics.IntegerStat;
 import de.timesnake.library.basic.util.statistics.PercentStat;
 import de.timesnake.library.basic.util.statistics.StatPeriod;
 import de.timesnake.library.basic.util.statistics.StatType;
+import de.timesnake.library.chat.ExTextColor;
 import de.timesnake.library.extension.util.chat.Chat;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Instrument;
@@ -56,12 +60,8 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-
-public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGame> implements Listener {
+public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGame> implements
+        Listener {
 
     public static final String SIDEBOARD_TITLE = "§6§lSurvivalGames";
     public static final Integer START_TIME = 1000;
@@ -71,10 +71,13 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     public static final Double BORDER_SHRINKING_TIME_MULTIPLIER = 1.5d;
     public static final Integer BORDER_DELAY_MIN_TO_0 = 2 * 60;
     public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
-    public static final StatType<Integer> WINS = new IntegerStat("wins", "Wins", 0, 10, 2, true, 0, 1);
-    public static final StatType<Float> WIN_CHANCE = new PercentStat("win_chance", "Win Chance", 0f, 10, 3,
+    public static final StatType<Integer> WINS = new IntegerStat("wins", "Wins", 0, 10, 2, true, 0,
+            1);
+    public static final StatType<Float> WIN_CHANCE = new PercentStat("win_chance", "Win Chance", 0f,
+            10, 3,
             false, 0, 0);
-    public static final StatType<Integer> KILLS = new IntegerStat("kills", "Kills", 0, 10, 4, true, 0, 2);
+    public static final StatType<Integer> KILLS = new IntegerStat("kills", "Kills", 0, 10, 4, true,
+            0, 2);
     public static final float WIN_COINS = 10 * TimeCoins.MULTIPLIER;
     public static final float KILL_COINS = 3 * TimeCoins.MULTIPLIER;
 
@@ -107,7 +110,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         super.onLoungeBridgeEnable();
         this.itemManager = new SurvivalGamesItemManager();
 
-        this.sideboard = Server.getScoreboardManager().registerSideboard("survivalgames", SIDEBOARD_TITLE);
+        this.sideboard = Server.getScoreboardManager()
+                .registerSideboard("survivalgames", SIDEBOARD_TITLE);
 
         if (LoungeBridgeServer.getServerTeamAmount() > 0) {
             this.sideboard.setScore(7, "§3§lTeam");
@@ -121,7 +125,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.sideboard.setScore(1, "§c§lKills");
         // kill amount
 
-        this.spectatorSideboard = Server.getScoreboardManager().registerSideboard("sgSpec", SIDEBOARD_TITLE);
+        this.spectatorSideboard = Server.getScoreboardManager()
+                .registerSideboard("sgSpec", SIDEBOARD_TITLE);
         this.spectatorSideboard.setScore(4, "§9§lPlayers");
         // player amount
         this.spectatorSideboard.setScore(2, "§r§f-----------");
@@ -156,7 +161,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         Location spawn = this.getMap().getLocation(this.spawnIndex);
         if (spawn == null) {
             if (this.spawnIndex == 1) {
-                Server.printWarning(Plugin.SURVIVAL_GAMES, "Too few spawns in map " + this.getMap().getName());
+                Server.printWarning(Plugin.SURVIVAL_GAMES,
+                        "Too few spawns in map " + this.getMap().getName());
                 return this.getMap().getSpectatorSpawn();
             }
             this.spawnIndex = 1;
@@ -184,7 +190,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     @Override
     @Deprecated
     public void broadcastGameMessage(String message) {
-        Server.broadcastMessage(Plugin.SURVIVAL_GAMES, message);
+        Server.broadcastTDMessage(Plugin.SURVIVAL_GAMES, message);
     }
 
     @Override
@@ -210,13 +216,15 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
         map.getWorld().getWorldBorder().reset();
         this.worldBorder = new ExWorldBorder(map.getWorld(), map.getSpectatorSpawn().getX(),
-                map.getSpectatorSpawn().getZ(), map.getRadius() * 2, WORLD_BORDER_WARNING, 0, WORLD_BORDER_DAMAGE,
+                map.getSpectatorSpawn().getZ(), map.getRadius() * 2, WORLD_BORDER_WARNING, 0,
+                WORLD_BORDER_DAMAGE,
                 true);
 
         this.peaceTime = this.getMap().getPeaceTime();
 
-        this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + this.peaceTime + ChatColor.WHITE + " " +
-                "seconds");
+        this.peaceTimeBar.setTitle(
+                "Peace time ends in " + ChatColor.RED + this.peaceTime + ChatColor.WHITE + " " +
+                        "seconds");
         this.peaceTimeBar.setProgress(1);
 
         this.updateMapOnSideboard();
@@ -239,7 +247,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     public void startPeaceTime() {
-        if (!(peaceTime.equals(60) || peaceTime.equals(30) || peaceTime.equals(10) || peaceTime.equals(5) || peaceTime.equals(0))) {
+        if (!(peaceTime.equals(60) || peaceTime.equals(30) || peaceTime.equals(10)
+                || peaceTime.equals(5) || peaceTime.equals(0))) {
             this.broadcastGameMessage(Component.text("Peace time ends in ", ExTextColor.PUBLIC)
                     .append(Component.text(this.peaceTime + "s", ExTextColor.VALUE)));
         }
@@ -247,8 +256,9 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         if (peaceTime > 0) {
             this.peaceTimeTask = Server.runTaskTimerSynchrony(() -> {
                 switch (peaceTime) {
-                    case 60, 30, 10, 5 -> broadcastGameMessage(Component.text("Peace time ends in ", ExTextColor.PUBLIC)
-                            .append(Component.text(peaceTime + "s", ExTextColor.VALUE)));
+                    case 60, 30, 10, 5 -> broadcastGameMessage(
+                            Component.text("Peace time ends in ", ExTextColor.PUBLIC)
+                                    .append(Component.text(peaceTime + "s", ExTextColor.VALUE)));
                     case 0 -> {
                         broadcastGameMessage(Component.text("Peace time ends ", ExTextColor.PUBLIC)
                                 .append(Component.text("now", ExTextColor.WARNING)));
@@ -261,8 +271,9 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
                     }
                 }
 
-                this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + peaceTime + ChatColor.WHITE + " " +
-                        "seconds");
+                this.peaceTimeBar.setTitle(
+                        "Peace time ends in " + ChatColor.RED + peaceTime + ChatColor.WHITE + " " +
+                                "seconds");
                 this.peaceTimeBar.setProgress(peaceTime / ((double) this.getMap().getPeaceTime()));
 
                 peaceTime--;
@@ -281,10 +292,12 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
         this.refillTask = Server.runTaskTimerSynchrony(() -> {
             switch (refillTime) {
-                case 60, 30, 10, 5 -> broadcastGameMessage(Component.text("Chest refill in ", ExTextColor.PUBLIC)
-                        .append(Component.text(refillTime + "s", ExTextColor.VALUE)));
+                case 60, 30, 10, 5 ->
+                        broadcastGameMessage(Component.text("Chest refill in ", ExTextColor.PUBLIC)
+                                .append(Component.text(refillTime + "s", ExTextColor.VALUE)));
                 case 0 -> {
-                    broadcastGameMessage(Component.text("Chests were refilled", ExTextColor.WARNING));
+                    broadcastGameMessage(
+                            Component.text("Chests were refilled", ExTextColor.WARNING));
                     Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
                     this.itemManager.fillMapChests(this.chestLevel);
                     this.chestLevel++;
@@ -297,12 +310,15 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     public void startBorderTask() {
-        this.borderTask = Server.runTaskLaterSynchrony(this::shrinkBorder, this.getMap().getTimeBorderShrink() * 20,
+        this.borderTask = Server.runTaskLaterSynchrony(this::shrinkBorder,
+                this.getMap().getTimeBorderShrink() * 20,
                 GameSurvivalGames.getPlugin());
     }
 
     public void checkPlayerBorderShrink() {
-        if (Server.getInGameUsers().size() <= this.getMap().getPlayerBorderShrink() || (LoungeBridgeServer.getNotEmptyGameTeams().size() <= this.getMap().getPlayerBorderShrink() && LoungeBridgeServer.getServerTeamAmount() > 0)) {
+        if (Server.getInGameUsers().size() <= this.getMap().getPlayerBorderShrink() || (
+                LoungeBridgeServer.getNotEmptyGameTeams().size() <= this.getMap()
+                        .getPlayerBorderShrink() && LoungeBridgeServer.getServerTeamAmount() > 0)) {
             this.shrinkBorder();
         }
     }
@@ -319,10 +335,13 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.shrinkingBorder = true;
 
         Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
-        Server.runTaskLaterSynchrony(() -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
+        Server.runTaskLaterSynchrony(
+                () -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
                 GameSurvivalGames.getPlugin());
-        this.broadcastGameMessage(Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
-        this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
+        this.broadcastGameMessage(
+                Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
+        this.worldBorder.setSize(MIN_BORDER_SIZE,
+                (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
 
         if (this.borderTask != null) {
             this.borderTask.cancel();
@@ -330,13 +349,16 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
         this.borderTask = Server.runTaskLaterSynchrony(() -> {
                     this.worldBorder.setSize(0, (int) (MIN_BORDER_SIZE * 20 * 2 * this.shrinkSpeed), false);
-                    this.broadcastGameMessage(Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
-                }, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20) + BORDER_DELAY_MIN_TO_0 * 20,
+                    this.broadcastGameMessage(
+                            Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
+                }, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20)
+                        + BORDER_DELAY_MIN_TO_0 * 20,
                 GameSurvivalGames.getPlugin());
     }
 
     public void startPvPHintTask() {
-        this.pvpHintTask = Server.runTaskTimerSynchrony(Server::broadcastPvPTypeMessage, 0, 20 * 60 * 3,
+        this.pvpHintTask = Server.runTaskTimerSynchrony(Server::broadcastPvPTypeMessage, 0,
+                20 * 60 * 3,
                 GameSurvivalGames.getPlugin());
     }
 
@@ -410,11 +432,14 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
             Iterator<Team> it = LoungeBridgeServer.getNotEmptyGameTeams().iterator();
             this.winnerTeam = it.hasNext() ? it.next() : null;
             if (winnerTeam != null) {
-                Server.broadcastTitle(Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
-                                .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(),
+                Server.broadcastTitle(
+                        Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
+                                .append(Component.text(" wins", ExTextColor.PUBLIC)),
+                        Component.empty(),
                         Duration.ofSeconds(5));
-                this.broadcastGameMessage(Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
-                        .append(Component.text(" wins", ExTextColor.PUBLIC)));
+                this.broadcastGameMessage(
+                        Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
+                                .append(Component.text(" wins", ExTextColor.PUBLIC)));
                 for (User user : winnerTeam.getUsers()) {
                     user.addCoins(WIN_COINS, true);
                 }
@@ -424,7 +449,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         }
 
         this.broadcastGameMessage(Chat.getLongLineSeparator());
-        this.broadcastHighscore("Kills", ((Collection) Server.getInOutGameUsers()), 3, GameUser::getKills);
+        this.broadcastHighscore("Kills", ((Collection) Server.getInOutGameUsers()), 3,
+                GameUser::getKills);
         this.broadcastHighscore("Longest Shot", ((Collection) Server.getInOutGameUsers()), 3,
                 u -> u.getLongestShot() > 0, GameUser::getLongestShot);
         this.broadcastGameMessage(Chat.getLongLineSeparator());
@@ -457,9 +483,11 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
                     .append(Component.text(" health: ", ExTextColor.PERSONAL))
                     .append(((GameUser) damager).getHealthDisplay().color(ExTextColor.VALUE)));
             Server.printText(Plugin.SURVIVAL_GAMES,
-                    PlainTextComponentSerializer.plainText().serialize(damager.getChatNameComponent()
-                            .append(Component.text(": ", ExTextColor.PERSONAL))
-                            .append(((GameUser) damager).getHealthDisplay().color(ExTextColor.VALUE))));
+                    PlainTextComponentSerializer.plainText()
+                            .serialize(damager.getChatNameComponent()
+                                    .append(Component.text(": ", ExTextColor.PERSONAL))
+                                    .append(((GameUser) damager).getHealthDisplay()
+                                            .color(ExTextColor.VALUE))));
         }
     }
 
@@ -537,7 +565,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.spawnIndex = 1;
         this.shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
         Server.getWorldManager().reloadWorld(this.getMap().getWorld());
-        Server.printText(Plugin.SURVIVAL_GAMES, "Reloaded world " + this.getMap().getWorld().getName());
+        Server.printText(Plugin.SURVIVAL_GAMES,
+                "Reloaded world " + this.getMap().getWorld().getName());
     }
 
     @Override
@@ -566,8 +595,9 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     public boolean isStop() {
-        return Server.getInGameUsers().size() <= 1 || (LoungeBridgeServer.getNotEmptyGameTeams().size() <= 1
-                && LoungeBridgeServer.getServerTeamAmount() > 0);
+        return Server.getInGameUsers().size() <= 1 || (
+                LoungeBridgeServer.getNotEmptyGameTeams().size() <= 1
+                        && LoungeBridgeServer.getServerTeamAmount() > 0);
     }
 
     public void updateSideboardPlayerAmount() {
@@ -605,7 +635,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.shrinkSpeed = shrinkSpeed;
         if (this.shrinkingBorder) {
             if (this.worldBorder.getSize() >= MIN_BORDER_SIZE) {
-                this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.worldBorder.getSize() * this.shrinkSpeed * 20),
+                this.worldBorder.setSize(MIN_BORDER_SIZE,
+                        (int) (this.worldBorder.getSize() * this.shrinkSpeed * 20),
                         true);
             }
         }
