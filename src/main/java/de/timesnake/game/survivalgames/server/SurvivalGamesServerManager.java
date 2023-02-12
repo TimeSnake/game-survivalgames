@@ -611,7 +611,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.spectatorSideboard.setScore(0, "§f" + this.getMap().getDisplayName());
     }
 
-    public Sideboard getSideboard() {
+    @Override
+    public Sideboard getGameSideboard() {
         return sideboard;
     }
 
