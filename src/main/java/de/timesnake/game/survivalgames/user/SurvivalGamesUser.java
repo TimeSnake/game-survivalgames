@@ -26,7 +26,6 @@ public class SurvivalGamesUser extends GameUser {
         this.setDefault();
         this.teleport(SurvivalGamesServer.nextSpawn());
         this.lockLocation();
-        this.setSideboard(SurvivalGamesServer.getSideboard());
         this.setBossBar(SurvivalGamesServer.getPeaceTimeBar());
 
         if (LoungeBridgeServer.getServerTeamAmount() > 0) {
