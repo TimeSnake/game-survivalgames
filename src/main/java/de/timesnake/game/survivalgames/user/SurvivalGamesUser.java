@@ -5,6 +5,7 @@
 package de.timesnake.game.survivalgames.user;
 
 import de.timesnake.basic.bukkit.util.Server;
+import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.game.survivalgames.chat.Plugin;
@@ -49,13 +50,14 @@ public class SurvivalGamesUser extends GameUser {
 
     public void setSideboardTeam() {
         if (this.getTeam() != null) {
-            this.setSideboardScore(6,
+            SurvivalGamesServer.getGameSideboard().updateScore4User(this, LineId.TEAM,
                     this.getTeam().getChatColor() + this.getTeam().getDisplayName());
         }
     }
 
     public void updateSideboardKills() {
-        this.setSideboardScore(0, super.getKills() + "");
+        SurvivalGamesServer.getGameSideboard()
+                .updateScore4User(this, LineId.KILLS, super.getKills());
     }
 
     @Override
@@ -85,7 +87,7 @@ public class SurvivalGamesUser extends GameUser {
     }
 
     public void startGame() {
-        this.lockLocation(false);
+        this.unlockLocation();
     }
 
 }

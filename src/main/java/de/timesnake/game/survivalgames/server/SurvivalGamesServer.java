@@ -4,6 +4,7 @@
 
 package de.timesnake.game.survivalgames.server;
 
+import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard;
 import de.timesnake.basic.bukkit.util.world.ExWorldBorder;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
@@ -50,6 +51,10 @@ public class SurvivalGamesServer extends LoungeBridgeServer {
 
     public static BossBar getPeaceTimeBar() {
         return server.getPeaceTimeBar();
+    }
+
+    public static ExSideboard getGameSideboard() {
+        return server.getGameSideboard();
     }
 
     private static final SurvivalGamesServerManager server = SurvivalGamesServerManager.getInstance();
