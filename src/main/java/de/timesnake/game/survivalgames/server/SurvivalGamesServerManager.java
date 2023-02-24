@@ -12,6 +12,9 @@ import de.timesnake.basic.bukkit.util.user.event.UserDamageByUserEvent;
 import de.timesnake.basic.bukkit.util.user.event.UserDamageEvent;
 import de.timesnake.basic.bukkit.util.user.event.UserDeathEvent;
 import de.timesnake.basic.bukkit.util.user.event.UserRespawnEvent;
+import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard;
+import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
+import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboardBuilder;
 import de.timesnake.basic.bukkit.util.user.scoreboard.Sideboard;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.bukkit.util.world.ExWorldBorder;
@@ -85,13 +88,11 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         return (SurvivalGamesServerManager) ServerManager.getInstance();
     }
 
-    private boolean isRunning = false;
     private SurvivalGamesItemManager itemManager;
     private Integer chestLevel = 0;
     private boolean stopAfterStart = false;
-    private boolean stopped = false;
-    private Sideboard sideboard;
-    private Sideboard spectatorSideboard;
+    private ExSideboard sideboard;
+    private ExSideboard spectatorSideboard;
     private BossBar peaceTimeBar;
     private Integer spawnIndex = 1;
     private BukkitTask refillTask;
@@ -110,28 +111,29 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         super.onLoungeBridgeEnable();
         this.itemManager = new SurvivalGamesItemManager();
 
-        this.sideboard = Server.getScoreboardManager()
-                .registerSideboard("survivalgames", SIDEBOARD_TITLE);
+        ExSideboardBuilder sideboardBuilder = new ExSideboardBuilder()
+                .name("survivalgames")
+                .title(SIDEBOARD_TITLE)
+                .lineSpacer();
 
         if (LoungeBridgeServer.getServerTeamAmount() > 0) {
-            this.sideboard.setScore(7, "§3§lTeam");
-            // team
-            this.sideboard.setScore(5, "§f-----------");
+            sideboardBuilder.addLine(LineId.TEAM);
         }
 
-        this.sideboard.setScore(4, "§9§lPlayers");
-        // player amount
-        this.sideboard.setScore(2, "§r§f-----------");
-        this.sideboard.setScore(1, "§c§lKills");
-        // kill amount
+        sideboardBuilder.addLine(LineId.PLAYERS_OF)
+                .addLine(LineId.KILLS);
+
+        this.sideboard = Server.getScoreboardManager().registerExSideboard(sideboardBuilder);
+
+        ExSideboardBuilder spectatorSideboardBuilder = new ExSideboardBuilder()
+                .name("sg_spec")
+                .title(SIDEBOARD_TITLE)
+                .lineSpacer()
+                .addLine(LineId.PLAYERS_OF)
+                .addLine(LineId.MAP);
 
         this.spectatorSideboard = Server.getScoreboardManager()
-                .registerSideboard("sgSpec", SIDEBOARD_TITLE);
-        this.spectatorSideboard.setScore(4, "§9§lPlayers");
-        // player amount
-        this.spectatorSideboard.setScore(2, "§r§f-----------");
-        this.spectatorSideboard.setScore(1, "§c§lMap");
-        // map
+                .registerExSideboard(spectatorSideboardBuilder);
 
         this.peaceTimeBar = Server.createBossBar("", BarColor.RED, BarStyle.SOLID);
 
@@ -183,22 +185,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     @Override
-    public boolean isGameRunning() {
-        return this.isRunning;
-    }
-
-    @Override
-    @Deprecated
-    public void broadcastGameMessage(String message) {
-        Server.broadcastTDMessage(Plugin.SURVIVAL_GAMES, message);
-    }
-
-    @Override
-    public void broadcastGameMessage(Component message) {
-        Server.broadcastMessage(Plugin.SURVIVAL_GAMES, message);
-    }
-
-    @Override
     public void onMapLoad() {
         SurvivalGamesMap map = this.getMap();
         this.itemManager.fillMapChests(this.chestLevel);
@@ -215,16 +201,20 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         }
 
         map.getWorld().getWorldBorder().reset();
-        this.worldBorder = new ExWorldBorder(map.getWorld(), map.getSpectatorSpawn().getX(),
-                map.getSpectatorSpawn().getZ(), map.getRadius() * 2, WORLD_BORDER_WARNING, 0,
-                WORLD_BORDER_DAMAGE,
-                true);
+        this.worldBorder = new ExWorldBorder.Builder()
+                .world(map.getWorld())
+                .centerX(map.getSpectatorSpawn().getX())
+                .centerZ(map.getSpectatorSpawn().getZ())
+                .size(map.getRadius() * 2)
+                .warningDistance(WORLD_BORDER_WARNING)
+                .damagePerSec(WORLD_BORDER_DAMAGE)
+                .sound(true).build();
 
         this.peaceTime = this.getMap().getPeaceTime();
 
         this.peaceTimeBar.setTitle(
-                "Peace time ends in " + ChatColor.RED + this.peaceTime + ChatColor.WHITE + " " +
-                        "seconds");
+                "Peace time ends in " + ChatColor.RED + Chat.getTimeString(this.peaceTime)
+                        + ChatColor.WHITE + " seconds");
         this.peaceTimeBar.setProgress(1);
 
         this.updateMapOnSideboard();
@@ -235,7 +225,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         if (this.stopAfterStart) {
             this.stopGame();
         }
-        this.isRunning = true;
         for (User user : Server.getInGameUsers()) {
             ((SurvivalGamesUser) user).startGame();
         }
@@ -258,7 +247,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
                 switch (peaceTime) {
                     case 60, 30, 10, 5 -> broadcastGameMessage(
                             Component.text("Peace time ends in ", ExTextColor.PUBLIC)
-                                    .append(Component.text(peaceTime + "s", ExTextColor.VALUE)));
+                                    .append(Component.text(Chat.getTimeString(this.peaceTime),
+                                            ExTextColor.VALUE)));
                     case 0 -> {
                         broadcastGameMessage(Component.text("Peace time ends ", ExTextColor.PUBLIC)
                                 .append(Component.text("now", ExTextColor.WARNING)));
@@ -272,14 +262,13 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
                 }
 
                 this.peaceTimeBar.setTitle(
-                        "Peace time ends in " + ChatColor.RED + peaceTime + ChatColor.WHITE + " " +
-                                "seconds");
+                        "Peace time ends in " + ChatColor.RED + Chat.getTimeString(this.peaceTime) +
+                                ChatColor.WHITE + " seconds");
                 this.peaceTimeBar.setProgress(peaceTime / ((double) this.getMap().getPeaceTime()));
 
                 peaceTime--;
             }, 0, 20, GameSurvivalGames.getPlugin());
         }
-
     }
 
     public void startRefillTask() {
@@ -328,7 +317,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
             return;
         }
 
-        if (!this.isRunning) {
+        if (!this.isGameRunning()) {
             return;
         }
 
@@ -374,14 +363,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     @Override
     public void onGameStop() {
-        if (this.stopped) {
-            return;
-        }
-
-        this.stopped = true;
         this.chestLevel = 0;
-
-        this.isRunning = false;
 
         for (Entity current : this.getMap().getWorld().getEntities()) {
             if (current instanceof Item) {
@@ -560,7 +542,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     @Override
     public void onGameReset() {
-        this.stopped = false;
         this.stopAfterStart = false;
         this.spawnIndex = 1;
         this.shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
@@ -603,16 +584,16 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     public void updateSideboardPlayerAmount() {
         Integer amount = Server.getInGameUsers().size() + Server.getPreGameUsers().size();
         Integer max = this.getMaxPlayers();
-        this.sideboard.setScore(3, amount + " §7/§f " + max);
-        this.spectatorSideboard.setScore(3, amount + " §7/§f " + max);
+        this.sideboard.updateScore(LineId.PLAYERS_OF, amount + " §7/§f " + max);
+        this.spectatorSideboard.updateScore(LineId.PLAYERS_OF, amount + " §7/§f " + max);
     }
 
     public void updateMapOnSideboard() {
-        this.spectatorSideboard.setScore(0, "§f" + this.getMap().getDisplayName());
+        this.spectatorSideboard.updateScore(LineId.MAP, "§f" + this.getMap().getDisplayName());
     }
 
     @Override
-    public Sideboard getGameSideboard() {
+    public ExSideboard getGameSideboard() {
         return sideboard;
     }
 
