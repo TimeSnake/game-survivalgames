@@ -33,6 +33,7 @@ import de.timesnake.game.survivalgames.item.SurvivalGamesItemManager;
 import de.timesnake.game.survivalgames.main.GameSurvivalGames;
 import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.user.SurvivalGamesUser;
+import de.timesnake.library.basic.util.Loggers;
 import de.timesnake.library.basic.util.Status;
 import de.timesnake.library.basic.util.TimeCoins;
 import de.timesnake.library.basic.util.statistics.IntegerStat;
@@ -163,8 +164,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         Location spawn = this.getMap().getLocation(this.spawnIndex);
         if (spawn == null) {
             if (this.spawnIndex == 1) {
-                Server.printWarning(Plugin.SURVIVAL_GAMES,
-                        "Too few spawns in map " + this.getMap().getName());
+                Loggers.GAME.warning("Too few spawns in map " + this.getMap().getName());
                 return this.getMap().getSpectatorSpawn();
             }
             this.spawnIndex = 1;
@@ -189,7 +189,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         SurvivalGamesMap map = this.getMap();
         this.itemManager.fillMapChests(this.chestLevel);
         this.chestLevel++;
-        Server.printText(Plugin.SURVIVAL_GAMES, "Chests filled in map " + map.getName());
+        Loggers.GAME.info("Chests filled in map " + map.getName());
         map.getWorld().setTime(1000);
 
         if (this.worldBorder != null) {
@@ -464,12 +464,11 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
             user.sendPluginMessage(Plugin.SURVIVAL_GAMES, damager.getChatNameComponent()
                     .append(Component.text(" health: ", ExTextColor.PERSONAL))
                     .append(((GameUser) damager).getHealthDisplay().color(ExTextColor.VALUE)));
-            Server.printText(Plugin.SURVIVAL_GAMES,
-                    PlainTextComponentSerializer.plainText()
-                            .serialize(damager.getChatNameComponent()
-                                    .append(Component.text(": ", ExTextColor.PERSONAL))
-                                    .append(((GameUser) damager).getHealthDisplay()
-                                            .color(ExTextColor.VALUE))));
+            Loggers.GAME.info(PlainTextComponentSerializer.plainText()
+                    .serialize(damager.getChatNameComponent()
+                            .append(Component.text(": ", ExTextColor.PERSONAL))
+                            .append(((GameUser) damager).getHealthDisplay()
+                                    .color(ExTextColor.VALUE))));
         }
     }
 
@@ -546,8 +545,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         this.spawnIndex = 1;
         this.shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
         Server.getWorldManager().reloadWorld(this.getMap().getWorld());
-        Server.printText(Plugin.SURVIVAL_GAMES,
-                "Reloaded world " + this.getMap().getWorld().getName());
+        Loggers.GAME.info("Reloaded world " + this.getMap().getWorld().getName());
     }
 
     @Override

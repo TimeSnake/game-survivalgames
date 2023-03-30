@@ -4,18 +4,20 @@
 
 package de.timesnake.game.survivalgames.item;
 
-import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.database.util.Database;
 import de.timesnake.database.util.hungergames.DbHungerGamesItem;
-import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
+import de.timesnake.library.basic.util.Loggers;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.*;
 
 public class SurvivalGamesItemManager {
 
@@ -35,7 +37,7 @@ public class SurvivalGamesItemManager {
             try {
                 item = new SurvivalGamesItem(dbItem);
             } catch (InvalidSurvivalGamesItemTypeException e) {
-                Server.printWarning(Plugin.SURVIVAL_GAMES, e.getMessage(), "Item");
+                Loggers.GAME.warning("Item: " + e.getMessage());
                 continue;
             }
 
@@ -47,8 +49,9 @@ public class SurvivalGamesItemManager {
 
             items.add(item);
             this.itemsByLevel.put(item.getLevel(), items);
-            Server.printText(Plugin.SURVIVAL_GAMES,
-                    "Added item " + item.getItem().getType().name().toLowerCase() + " " + item.getItem().getAmount() + " chance " + item.getChance() + " level " + item.getLevel(), "Item");
+            Loggers.GAME.info("Added item " + item.getItem().getType().name().toLowerCase() + " "
+                    + item.getItem().getAmount() + " chance " + item.getChance() + " level "
+                    + item.getLevel());
 
             Float chanceSum = this.chanceSumPerLevel.get(item.getLevel());
 
@@ -79,7 +82,8 @@ public class SurvivalGamesItemManager {
                 this.filledChests.clear();
 
                 for (ExBlock block : map.getChests()) {
-                    if (random.nextFloat() < map.getChestChance() || block.getBlock().getType().equals(Material.TRAPPED_CHEST)) {
+                    if (random.nextFloat() < map.getChestChance() || block.getBlock().getType()
+                            .equals(Material.TRAPPED_CHEST)) {
                         this.fillInventory(chestLevel, block);
                         this.filledChests.add(block);
                     } else {
@@ -88,7 +92,8 @@ public class SurvivalGamesItemManager {
                 }
             } else {
                 for (ExBlock block : this.filledChests) {
-                    if (!block.getBlock().getType().equals(Material.TRAPPED_CHEST) || this.random.nextFloat() < map.getChestChance()) {
+                    if (!block.getBlock().getType().equals(Material.TRAPPED_CHEST)
+                            || this.random.nextFloat() < map.getChestChance()) {
                         this.fillInventory(chestLevel, block);
                     }
                 }
@@ -105,7 +110,8 @@ public class SurvivalGamesItemManager {
         chestInventory.clear();
 
         int amount =
-                this.random.nextInt(map.getMaxItemsPerChest() - map.getMinItemsPerChest() + 1) + map.getMinItemsPerChest();
+                this.random.nextInt(map.getMaxItemsPerChest() - map.getMinItemsPerChest() + 1)
+                        + map.getMinItemsPerChest();
 
         Set<Integer> usedSlots = new HashSet<>();
 
@@ -144,7 +150,7 @@ public class SurvivalGamesItemManager {
     private ItemStack getRandomItem(Integer level) {
         if (this.chanceSumPerLevel.get(level) == null) {
             if (level.equals(0)) {
-                Server.printWarning(Plugin.SURVIVAL_GAMES, "Too few items", "Item");
+                Loggers.GAME.warning("Too few items");
                 return null;
             } else {
                 return this.getRandomItem(level - 1);
