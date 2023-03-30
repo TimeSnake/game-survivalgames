@@ -4,13 +4,12 @@
 
 package de.timesnake.game.survivalgames.user;
 
-import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
-import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServerManager;
+import de.timesnake.library.basic.util.Loggers;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
@@ -42,8 +41,7 @@ public class SurvivalGamesUser extends GameUser {
         if (SurvivalGamesServer.getWorldBorder() != null) {
             SurvivalGamesServer.getWorldBorder().addUser(this);
         } else {
-            Server.printWarning(Plugin.SURVIVAL_GAMES,
-                    "Unable to set world border for user " + this.getName());
+            Loggers.GAME.warning("Unable to set world border for user " + this.getName());
         }
 
     }
