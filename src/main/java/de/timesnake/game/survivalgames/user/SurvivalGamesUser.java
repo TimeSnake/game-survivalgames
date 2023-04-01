@@ -21,7 +21,9 @@ public class SurvivalGamesUser extends GameUser {
     }
 
     @Override
-    public void joinGame() {
+    public void onGameJoin() {
+        super.onGameJoin();
+
         SurvivalGamesServer.updateSideboardPlayerAmount();
         this.setDefault();
         this.teleport(SurvivalGamesServer.nextSpawn());
