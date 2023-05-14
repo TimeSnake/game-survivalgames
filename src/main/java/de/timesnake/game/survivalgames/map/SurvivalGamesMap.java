@@ -186,8 +186,8 @@ public class SurvivalGamesMap extends Map {
             this.world.restrict(ExWorld.Restriction.ENTITY_BLOCK_BREAK, true);
             this.world.restrict(ExWorld.Restriction.BLOCK_PLACE, true);
             this.world.setExceptService(true);
-            this.world.restrict(ExWorld.Restriction.FIRE_SPREAD, true);
-            this.world.restrict(ExWorld.Restriction.BLOCK_IGNITE, true);
+            this.world.restrict(ExWorld.Restriction.FIRE_SPREAD_SPEED, 0f);
+            this.world.restrict(ExWorld.Restriction.TNT_PRIME, true);
             this.world.restrict(ExWorld.Restriction.ENTITY_EXPLODE, true);
             this.world.restrict(ExWorld.Restriction.BLOCK_BURN_UP, true);
             this.world.restrict(ExWorld.Restriction.FLINT_AND_STEEL, false);
