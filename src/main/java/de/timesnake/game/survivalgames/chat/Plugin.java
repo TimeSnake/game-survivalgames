@@ -10,10 +10,10 @@ import java.util.logging.Logger;
 
 public class Plugin extends de.timesnake.library.extension.util.chat.Plugin {
 
-    public static final Plugin SURVIVAL_GAMES = new Plugin("SurvivalGames", "GSG",
-            LogHelper.getLogger("SurvivalGames", Level.INFO));
+  public static final Plugin SURVIVAL_GAMES = new Plugin("SurvivalGames", "GSG",
+      LogHelper.getLogger("SurvivalGames", Level.INFO));
 
-    protected Plugin(String name, String code, Logger logger) {
-        super(name, code);
-    }
+  protected Plugin(String name, String code, Logger logger) {
+    super(name, code);
+  }
 }
