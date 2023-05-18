@@ -10,41 +10,41 @@ import org.bukkit.inventory.ItemStack;
 
 public class SurvivalGamesItem {
 
-    private final ItemStack item;
-    private final Float chance;
-    private final Integer level;
+  private final ItemStack item;
+  private final Float chance;
+  private final Integer level;
 
-    public SurvivalGamesItem(ItemStack item, Float chance, Integer level) {
-        this.item = item;
-        this.chance = chance;
-        this.level = level;
+  public SurvivalGamesItem(ItemStack item, Float chance, Integer level) {
+    this.item = item;
+    this.chance = chance;
+    this.level = level;
+  }
+
+  public SurvivalGamesItem(DbHungerGamesItem item) throws InvalidSurvivalGamesItemTypeException {
+    if (item.getType() == null) {
+      throw new InvalidSurvivalGamesItemTypeException(null);
     }
 
-    public SurvivalGamesItem(DbHungerGamesItem item) throws InvalidSurvivalGamesItemTypeException {
-        if (item.getType() == null) {
-            throw new InvalidSurvivalGamesItemTypeException(null);
-        }
+    Material type = Material.matchMaterial(item.getType());
 
-        Material type = Material.matchMaterial(item.getType());
-
-        if (type == null) {
-            throw new InvalidSurvivalGamesItemTypeException(item.getType());
-        }
-
-        this.item = new ItemStack(type, item.getAmount());
-        this.chance = item.getChance();
-        this.level = item.getLevel();
+    if (type == null) {
+      throw new InvalidSurvivalGamesItemTypeException(item.getType());
     }
 
-    public ItemStack getItem() {
-        return item;
-    }
+    this.item = new ItemStack(type, item.getAmount());
+    this.chance = item.getChance();
+    this.level = item.getLevel();
+  }
 
-    public Float getChance() {
-        return chance;
-    }
+  public ItemStack getItem() {
+    return item;
+  }
 
-    public Integer getLevel() {
-        return level;
-    }
+  public Float getChance() {
+    return chance;
+  }
+
+  public Integer getLevel() {
+    return level;
+  }
 }
