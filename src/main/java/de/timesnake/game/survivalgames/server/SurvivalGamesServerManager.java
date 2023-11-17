@@ -42,12 +42,7 @@ import de.timesnake.library.basic.util.statistics.StatPeriod;
 import de.timesnake.library.basic.util.statistics.StatType;
 import de.timesnake.library.chat.ExTextColor;
 import de.timesnake.library.extension.util.chat.Chat;
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
@@ -63,6 +58,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.scheduler.BukkitTask;
+
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
 public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGame> implements
     Listener {
@@ -212,9 +212,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     this.peaceTime = this.getMap().getPeaceTime();
 
-    this.peaceTimeBar.setTitle(
-        "Peace time ends in " + ChatColor.RED + Chat.getTimeString(this.peaceTime)
-            + ChatColor.WHITE + " seconds");
+    this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + Chat.getTimeString(this.peaceTime));
     this.peaceTimeBar.setProgress(1);
 
     this.updateMapOnSideboard();
@@ -238,35 +236,27 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   public void startPeaceTime() {
     if (!(peaceTime.equals(60) || peaceTime.equals(30) || peaceTime.equals(10)
         || peaceTime.equals(5) || peaceTime.equals(0))) {
-      this.broadcastGameMessage(Component.text("Peace time ends in ", ExTextColor.PUBLIC)
-          .append(Component.text(this.peaceTime + "s", ExTextColor.VALUE)));
+      this.broadcastGameTDMessage("Peace time ends in §v" + Chat.getTimeString(this.peaceTime));
     }
 
     if (peaceTime > 0) {
       this.peaceTimeTask = Server.runTaskTimerSynchrony(() -> {
         switch (peaceTime) {
-          case 60, 30, 10, 5 -> broadcastGameMessage(
-              Component.text("Peace time ends in ", ExTextColor.PUBLIC)
-                  .append(Component.text(Chat.getTimeString(this.peaceTime),
-                      ExTextColor.VALUE)));
+          case 60, 30, 10, 5 ->
+              this.broadcastGameTDMessage("§pPeace time ends in §v" + Chat.getTimeString(this.peaceTime));
           case 0 -> {
-            broadcastGameMessage(Component.text("Peace time ends ", ExTextColor.PUBLIC)
-                .append(Component.text("now", ExTextColor.WARNING)));
-            Server.broadcastTitle(Component.empty(),
-                Component.text("Peace time has ended!", ExTextColor.WARNING),
-                Duration.ofSeconds(3));
+            this.broadcastGameTDMessage("Peace time ends §wnow");
+            Server.broadcastTDTitle("", "§wPeace time has ended!", Duration.ofSeconds(3));
             Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
             Server.getGameUsers().forEach(u -> u.removeBossBar(this.peaceTimeBar));
             this.peaceTimeTask.cancel();
           }
         }
 
-        this.peaceTimeBar.setTitle(
-            "Peace time ends in " + ChatColor.RED + Chat.getTimeString(this.peaceTime) +
-                ChatColor.WHITE + " seconds");
+        this.peaceTimeBar.setTitle("Peace time ends in §w" + ChatColor.RED + Chat.getTimeString(this.peaceTime));
         this.peaceTimeBar.setProgress(peaceTime / ((double) this.getMap().getPeaceTime()));
 
-        peaceTime--;
+        this.peaceTime--;
       }, 0, 20, GameSurvivalGames.getPlugin());
     }
   }
@@ -281,12 +271,9 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     this.refillTask = Server.runTaskTimerSynchrony(() -> {
       switch (refillTime) {
-        case 60, 30, 10, 5 ->
-            broadcastGameMessage(Component.text("Chest refill in ", ExTextColor.PUBLIC)
-                .append(Component.text(refillTime + "s", ExTextColor.VALUE)));
+        case 60, 30, 10, 5 -> broadcastGameTDMessage("Chest refill in §v" + Chat.getTimeString(refillTime));
         case 0 -> {
-          broadcastGameMessage(
-              Component.text("Chests were refilled", ExTextColor.WARNING));
+          broadcastGameTDMessage("§wChests were refilled");
           Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
           this.itemManager.fillMapChests(this.chestLevel);
           this.chestLevel++;
@@ -327,10 +314,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     Server.runTaskLaterSynchrony(
         () -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
         GameSurvivalGames.getPlugin());
-    this.broadcastGameMessage(
-        Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
-    this.worldBorder.setSize(MIN_BORDER_SIZE,
-        (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
+    this.broadcastGameTDMessage("§wThe border begins to shrink. Watch out!");
+    this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
 
     if (this.borderTask != null) {
       this.borderTask.cancel();
@@ -338,16 +323,14 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     this.borderTask = Server.runTaskLaterSynchrony(() -> {
           this.worldBorder.setSize(0, (int) (MIN_BORDER_SIZE * 20 * 2 * this.shrinkSpeed), false);
-          this.broadcastGameMessage(
-              Component.text("The border begins to shrink. Watch out!", ExTextColor.WARNING));
-        }, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20)
-            + BORDER_DELAY_MIN_TO_0 * 20,
+          this.broadcastGameTDMessage("§wThe border begins to shrink. Watch out!");
+        },
+        (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20) + BORDER_DELAY_MIN_TO_0 * 20,
         GameSurvivalGames.getPlugin());
   }
 
   public void startPvPHintTask() {
-    this.pvpHintTask = Server.runTaskTimerSynchrony(Server::broadcastPvPTypeMessage, 0,
-        20 * 60 * 3,
+    this.pvpHintTask = Server.runTaskTimerSynchrony(Server::broadcastPvPTypeMessage, 0, 20 * 60 * 3,
         GameSurvivalGames.getPlugin());
   }
 
@@ -461,14 +444,9 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     if (user.isInGame() && user.getLastDamager() != null) {
       User damager = user.getLastDamager().getDamager();
-      user.sendPluginMessage(Plugin.SURVIVAL_GAMES, damager.getChatNameComponent()
-          .append(Component.text(" health: ", ExTextColor.PERSONAL))
-          .append(((GameUser) damager).getHealthDisplay().color(ExTextColor.VALUE)));
-      Loggers.GAME.info(PlainTextComponentSerializer.plainText()
-          .serialize(damager.getChatNameComponent()
-              .append(Component.text(": ", ExTextColor.PERSONAL))
-              .append(((GameUser) damager).getHealthDisplay()
-                  .color(ExTextColor.VALUE))));
+      user.sendPluginTDMessage(Plugin.SURVIVAL_GAMES, damager.getTDChatName() + " §shealth: §v"
+          + ((GameUser) damager).getHealthDisplay());
+      Loggers.GAME.info(damager.getName() + ": " + ((GameUser) damager).getHealthDisplay());
     }
   }
 
@@ -497,8 +475,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       if (!LoungeBridgeServer.isTeamMateDamage()) {
         if (!user.isTeamMate(((SurvivalGamesUser) e.getUserDamager()))) {
           if (this.isGameRunning()) {
-            e.getUserDamager().sendPluginMessage(Plugin.SURVIVAL_GAMES,
-                Component.text("Peace time is not over", ExTextColor.WARNING));
+            e.getUserDamager().sendPluginTDMessage(Plugin.SURVIVAL_GAMES, "§wPeace time is not over");
           }
         }
       }

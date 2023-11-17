@@ -10,11 +10,6 @@ import de.timesnake.basic.bukkit.util.world.ExWorld;
 import de.timesnake.basic.game.util.game.Map;
 import de.timesnake.database.util.game.DbMap;
 import de.timesnake.library.basic.util.Loggers;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -22,6 +17,11 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class SurvivalGamesMap extends Map {
 
@@ -228,8 +228,6 @@ public class SurvivalGamesMap extends Map {
     ExLocation spawn = this.getSpawn();
     Loggers.GAME.info("Map center: " + spawn.getBlockX() + " " + spawn.getBlockY() + " "
         + spawn.getBlockZ());
-
-    Random random = new Random();
 
     int xStart = spawn.getBlockX() - this.radius;
     int zStart = spawn.getBlockZ() - this.radius;
