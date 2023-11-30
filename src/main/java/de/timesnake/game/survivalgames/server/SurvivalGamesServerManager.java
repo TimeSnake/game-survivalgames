@@ -10,8 +10,6 @@ import de.timesnake.basic.bukkit.util.chat.ChatColor;
 import de.timesnake.basic.bukkit.util.user.User;
 import de.timesnake.basic.bukkit.util.user.event.UserDamageByUserEvent;
 import de.timesnake.basic.bukkit.util.user.event.UserDamageEvent;
-import de.timesnake.basic.bukkit.util.user.event.UserDeathEvent;
-import de.timesnake.basic.bukkit.util.user.event.UserRespawnEvent;
 import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard;
 import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
 import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboardBuilder;
@@ -20,10 +18,11 @@ import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.bukkit.util.world.ExWorldBorder;
 import de.timesnake.basic.game.util.game.Map;
 import de.timesnake.basic.game.util.game.Team;
-import de.timesnake.basic.game.util.user.SpectatorUser;
 import de.timesnake.basic.loungebridge.util.game.TmpGame;
+import de.timesnake.basic.loungebridge.util.server.EndMessage;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServerManager;
+import de.timesnake.basic.loungebridge.util.tool.advanced.PlayerNumberTool;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.database.util.game.DbGame;
 import de.timesnake.database.util.game.DbMap;
@@ -34,15 +33,12 @@ import de.timesnake.game.survivalgames.main.GameSurvivalGames;
 import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.user.SurvivalGamesUser;
 import de.timesnake.library.basic.util.Loggers;
-import de.timesnake.library.basic.util.Status;
 import de.timesnake.library.basic.util.TimeCoins;
 import de.timesnake.library.basic.util.statistics.IntegerStat;
 import de.timesnake.library.basic.util.statistics.PercentStat;
 import de.timesnake.library.basic.util.statistics.StatPeriod;
 import de.timesnake.library.basic.util.statistics.StatType;
-import de.timesnake.library.chat.ExTextColor;
 import de.timesnake.library.extension.util.chat.Chat;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
@@ -55,13 +51,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGame> implements
@@ -82,7 +74,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       false, 0, 0);
   public static final StatType<Integer> KILLS = new IntegerStat("kills", "Kills", 0, 10, 4, true,
       0, 2);
-  public static final float WIN_COINS = 10 * TimeCoins.MULTIPLIER;
+
   public static final float KILL_COINS = 3 * TimeCoins.MULTIPLIER;
 
   public static SurvivalGamesServerManager getInstance() {
@@ -138,11 +130,25 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     this.peaceTimeBar = Server.createBossBar("", BarColor.RED, BarStyle.SOLID);
 
-    this.updateSideboardPlayerAmount();
-
     if (LoungeBridgeServer.getServerTeamAmount() > 0) {
       LoungeBridgeServer.setTeamMateDamage(false);
     }
+
+    this.getToolManager().add(new PlayerNumberTool() {
+      @Override
+      public void onPlayerUpdate() {
+        Integer amount = Server.getInGameUsers().size() + Server.getPreGameUsers().size();
+        Integer max = SurvivalGamesServerManager.this.getMaxPlayers();
+        SurvivalGamesServerManager.this.sideboard.updateScore(LineId.PLAYERS_OF, amount + " §7/§f " + max);
+        SurvivalGamesServerManager.this.spectatorSideboard.updateScore(LineId.PLAYERS_OF, amount + " §7/§f " + max);
+
+        if (SurvivalGamesServerManager.this.checkGameEnd()) {
+          SurvivalGamesServerManager.this.stopGame();
+        } else {
+          SurvivalGamesServerManager.this.checkPlayerBorderShrink();
+        }
+      }
+    });
   }
 
   @Override
@@ -223,9 +229,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     if (this.stopAfterStart) {
       this.stopGame();
     }
-    for (User user : Server.getInGameUsers()) {
-      ((SurvivalGamesUser) user).startGame();
-    }
+
     this.getMap().getWorld().setTime(START_TIME);
     this.startPeaceTime();
     this.startRefillTask();
@@ -335,16 +339,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   }
 
   @Override
-  public void onGameUserQuit(GameUser user) {
-    this.updateSideboardPlayerAmount();
-    if (this.isStop()) {
-      this.stopGame();
-    } else {
-      this.checkPlayerBorderShrink();
-    }
-  }
-
-  @Override
   public void onGameStop() {
     this.chestLevel = 0;
 
@@ -378,47 +372,18 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       user.getPlayer().setInvulnerable(true);
     }
 
-    this.broadcastGameMessage(Chat.getLongLineSeparator());
+    EndMessage endMessage = new EndMessage();
 
     if (LoungeBridgeServer.getServerTeamAmount() == 0) {
-      Iterator<User> it = Server.getInGameUsers().iterator();
-      this.winnerUser = it.hasNext() ? it.next() : null;
-      if (winnerUser != null) {
-        Server.broadcastTitle(winnerUser.getChatNameComponent()
-                .append(Component.text(" wins", ExTextColor.PUBLIC)), Component.empty(),
-            Duration.ofSeconds(5));
-        this.broadcastGameMessage(winnerUser.getChatNameComponent()
-            .append(Component.text(" wins", ExTextColor.PUBLIC)));
-        winnerUser.addCoins(WIN_COINS, true);
-      } else {
-        this.broadcastGameMessage(Component.text("Game ended", ExTextColor.PUBLIC));
-      }
+      endMessage.winner(Server.getInGameUsers().stream().findAny().orElse(null));
     } else {
-      Iterator<Team> it = LoungeBridgeServer.getNotEmptyGameTeams().iterator();
-      this.winnerTeam = it.hasNext() ? it.next() : null;
-      if (winnerTeam != null) {
-        Server.broadcastTitle(
-            Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
-                .append(Component.text(" wins", ExTextColor.PUBLIC)),
-            Component.empty(),
-            Duration.ofSeconds(5));
-        this.broadcastGameMessage(
-            Component.text(winnerTeam.getDisplayName(), winnerTeam.getTextColor())
-                .append(Component.text(" wins", ExTextColor.PUBLIC)));
-        for (User user : winnerTeam.getUsers()) {
-          user.addCoins(WIN_COINS, true);
-        }
-      } else {
-        this.broadcastGameMessage(Component.text("Game ended", ExTextColor.PUBLIC));
-      }
+      endMessage.winner(LoungeBridgeServer.getNotEmptyGameTeams().stream().findAny().orElse(null));
     }
 
-    this.broadcastGameMessage(Chat.getLongLineSeparator());
-    this.broadcastHighscore("Kills", ((Collection) Server.getInOutGameUsers()), 3,
-        GameUser::getKills);
-    this.broadcastHighscore("Longest Shot", ((Collection) Server.getInOutGameUsers()), 3,
-        u -> u.getLongestShot() > 0, GameUser::getLongestShot);
-    this.broadcastGameMessage(Chat.getLongLineSeparator());
+    endMessage.addStat("Kills", Server.getInOutGameUsers(), 3, GameUser::getKills)
+        .addStat("Longest Shot", Server.getInOutGameUsers(), 3, u -> u.getLongestShot() > 0, GameUser::getLongestShot);
+
+    endMessage.send();
   }
 
   @EventHandler
@@ -436,43 +401,10 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   }
 
   @EventHandler
-  public void onUserDeath(UserDeathEvent e) {
-    SpectatorUser user = (SpectatorUser) e.getUser();
-    if (user.getStatus().equals(Status.User.IN_GAME)) {
-      e.setAutoRespawn(true);
-    }
-
-    if (user.isInGame() && user.getLastDamager() != null) {
-      User damager = user.getLastDamager().getDamager();
-      user.sendPluginTDMessage(Plugin.SURVIVAL_GAMES, damager.getTDChatName() + " §shealth: §v"
-          + ((GameUser) damager).getHealthDisplay());
-      Loggers.GAME.info(damager.getName() + ": " + ((GameUser) damager).getHealthDisplay());
-    }
-  }
-
-  @EventHandler
-  public void onUserRespawn(UserRespawnEvent e) {
-    SurvivalGamesUser user = ((SurvivalGamesUser) e.getUser());
-    e.setRespawnLocation(this.getSpectatorSpawn());
-    user.joinSpectator();
-
-    this.worldBorder.removeUser(user);
-
-    this.updateSideboardPlayerAmount();
-
-    if (this.isStop()) {
-      this.stopGame();
-    } else {
-      this.checkPlayerBorderShrink();
-    }
-
-  }
-
-  @EventHandler
   public void onUserDamageByUser(UserDamageByUserEvent e) {
     SurvivalGamesUser user = ((SurvivalGamesUser) e.getUser());
     if (this.peaceTime == null || this.peaceTime > 0 || !this.isGameRunning()) {
-      if (!LoungeBridgeServer.isTeamMateDamage()) {
+      if (!LoungeBridgeServer.allowTeamMateDamage()) {
         if (!user.isTeamMate(((SurvivalGamesUser) e.getUserDamager()))) {
           if (this.isGameRunning()) {
             e.getUserDamager().sendPluginTDMessage(Plugin.SURVIVAL_GAMES, "§wPeace time is not over");
@@ -487,22 +419,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       if (Server.isOldPvP()) {
         e.setDamage(e.getDamage() * BOW_DAMAGE_MULTIPLIER);
       }
-    }
-  }
-
-  @EventHandler
-  public void onInventoryOpen(InventoryOpenEvent e) {
-    if (e.getView().getTopInventory().getType().equals(InventoryType.ANVIL)) {
-      e.setCancelled(true);
-      e.getPlayer().closeInventory();
-    }
-  }
-
-  @Override
-  public void onGameUserQuitBeforeStart(GameUser user) {
-    this.updateSideboardPlayerAmount();
-    if (this.isStop()) {
-      this.stopAfterStart = true;
     }
   }
 
@@ -550,17 +466,10 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
   }
 
-  public boolean isStop() {
-    return Server.getInGameUsers().size() <= 1 || (
-        LoungeBridgeServer.getNotEmptyGameTeams().size() <= 1
+  @Override
+  public boolean checkGameEnd() {
+    return Server.getInGameUsers().size() <= 1 || (LoungeBridgeServer.getNotEmptyGameTeams().size() <= 1
             && LoungeBridgeServer.getServerTeamAmount() > 0);
-  }
-
-  public void updateSideboardPlayerAmount() {
-    Integer amount = Server.getInGameUsers().size() + Server.getPreGameUsers().size();
-    Integer max = this.getMaxPlayers();
-    this.sideboard.updateScore(LineId.PLAYERS_OF, amount + " §7/§f " + max);
-    this.spectatorSideboard.updateScore(LineId.PLAYERS_OF, amount + " §7/§f " + max);
   }
 
   public void updateMapOnSideboard() {

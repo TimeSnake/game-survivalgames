@@ -4,14 +4,18 @@
 
 package de.timesnake.game.survivalgames.user;
 
+import de.timesnake.basic.bukkit.util.user.User;
 import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
+import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
+import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServerManager;
 import de.timesnake.library.basic.util.Loggers;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.Nullable;
 
 public class SurvivalGamesUser extends GameUser {
 
@@ -24,7 +28,6 @@ public class SurvivalGamesUser extends GameUser {
   public void onGameJoin() {
     super.onGameJoin();
 
-    SurvivalGamesServer.updateSideboardPlayerAmount();
     this.setDefault();
     this.teleport(SurvivalGamesServer.nextSpawn());
     this.lockLocation();
@@ -76,7 +79,6 @@ public class SurvivalGamesUser extends GameUser {
   @Override
   public void joinSpectator() {
     super.joinSpectator();
-    SurvivalGamesServer.getWorldBorder().removeUser(this);
     SurvivalGamesServer.getWorldBorder().addSpectator(this);
 
     if (SurvivalGamesServer.getMap().isNightVision()) {
@@ -86,8 +88,29 @@ public class SurvivalGamesUser extends GameUser {
     }
   }
 
-  public void startGame() {
+  @Override
+  public void onGameStart() {
+    super.onGameStart();
+
     this.unlockLocation();
   }
 
+  @Override
+  public @Nullable ExLocation onGameRespawn() {
+    SurvivalGamesServer.getWorldBorder().removeUser(this);
+    this.joinSpectator();
+    return SurvivalGamesServer.getSpectatorSpawn();
+  }
+
+  @Override
+  public void onGameDeath() {
+    super.onGameDeath();
+
+    if (this.getLastDamager() != null) {
+      User damager = this.getLastDamager().getDamager();
+      this.sendPluginTDMessage(Plugin.SURVIVAL_GAMES, damager.getTDChatName() + " §shealth: §v"
+          + ((GameUser) damager).getHealthDisplay());
+      Loggers.GAME.info(damager.getName() + ": " + ((GameUser) damager).getHealthDisplay());
+    }
+  }
 }
