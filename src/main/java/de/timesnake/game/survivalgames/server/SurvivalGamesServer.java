@@ -21,10 +21,6 @@ public class SurvivalGamesServer extends LoungeBridgeServer {
     return server.nextSpawn();
   }
 
-  public static void updateSideboardPlayerAmount() {
-    server.updateSideboardPlayerAmount();
-  }
-
   public static ExWorldBorder getWorldBorder() {
     return server.getWorldBorder();
   }

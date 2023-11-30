@@ -14,7 +14,6 @@ import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Monster;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
@@ -196,6 +195,8 @@ public class SurvivalGamesMap extends Map {
       this.world.restrict(ExWorld.Restriction.FLUID_COLLECT, true);
       this.world.restrict(ExWorld.Restriction.ENTITY_EXPLODE, true);
       this.world.restrict(ExWorld.Restriction.PLACE_IN_BLOCK, true);
+      this.world.restrict(ExWorld.Restriction.OPEN_INVENTORIES, List.of(Material.ANVIL, Material.DAMAGED_ANVIL,
+          Material.CHIPPED_ANVIL));
 
       this.world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
       this.world.setGameRule(GameRule.DO_FIRE_TICK, false);
@@ -205,7 +206,7 @@ public class SurvivalGamesMap extends Map {
       this.world.setAutoSave(false);
 
       for (Entity entity : this.world.getEntities()) {
-        if (entity instanceof LivingEntity || entity instanceof Monster) {
+        if (entity instanceof LivingEntity) {
           entity.remove();
         }
       }
