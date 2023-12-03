@@ -14,8 +14,11 @@ import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServerManager;
 import de.timesnake.library.basic.util.Loggers;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class SurvivalGamesUser extends GameUser {
 
@@ -96,21 +99,21 @@ public class SurvivalGamesUser extends GameUser {
   }
 
   @Override
-  public @Nullable ExLocation onGameRespawn() {
+  public @Nullable ExLocation getRespawnLocation() {
     SurvivalGamesServer.getWorldBorder().removeUser(this);
     this.joinSpectator();
     return SurvivalGamesServer.getSpectatorSpawn();
   }
 
   @Override
-  public void onGameDeath() {
-    super.onGameDeath();
-
+  public List<ItemStack> onGameDeath() {
     if (this.getLastDamager() != null) {
       User damager = this.getLastDamager().getDamager();
       this.sendPluginTDMessage(Plugin.SURVIVAL_GAMES, damager.getTDChatName() + " §shealth: §v"
           + ((GameUser) damager).getHealthDisplay());
       Loggers.GAME.info(damager.getName() + ": " + ((GameUser) damager).getHealthDisplay());
     }
+
+    return super.onGameDeath();
   }
 }
