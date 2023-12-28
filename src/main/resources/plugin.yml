@@ -1,5 +1,5 @@
 main: de.timesnake.game.survivalgames.main.GameSurvivalGames
-version: 1.0
+version: 1.2.1
 name: game-hungergames
 author: Mn
 api-version: 1.13
