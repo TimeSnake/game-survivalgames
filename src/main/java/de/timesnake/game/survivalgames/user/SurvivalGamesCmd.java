@@ -4,26 +4,26 @@
 
 package de.timesnake.game.survivalgames.user;
 
-import de.timesnake.basic.bukkit.util.chat.Argument;
-import de.timesnake.basic.bukkit.util.chat.CommandListener;
-import de.timesnake.basic.bukkit.util.chat.Sender;
+import de.timesnake.basic.bukkit.util.chat.cmd.Argument;
+import de.timesnake.basic.bukkit.util.chat.cmd.CommandListener;
+import de.timesnake.basic.bukkit.util.chat.cmd.Completion;
+import de.timesnake.basic.bukkit.util.chat.cmd.Sender;
+import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.library.chat.ExTextColor;
+import de.timesnake.library.commands.PluginCommand;
+import de.timesnake.library.commands.simple.Arguments;
 import de.timesnake.library.extension.util.chat.Code;
-import de.timesnake.library.extension.util.chat.Plugin;
-import de.timesnake.library.extension.util.cmd.Arguments;
-import de.timesnake.library.extension.util.cmd.ExCommand;
-import java.util.List;
 import net.kyori.adventure.text.Component;
 
 public class SurvivalGamesCmd implements CommandListener {
 
-  private Code borderPerm;
-  private Code refillPerm;
+  private final Code perm = Plugin.SURVIVAL_GAMES.createPermssionCode("survivalgames");
+  private final Code borderPerm = Plugin.SURVIVAL_GAMES.createPermssionCode("survivalgames.border");
+  private final Code refillPerm = Plugin.SURVIVAL_GAMES.createPermssionCode("survivalgames.refill");
 
   @Override
-  public void onCommand(Sender sender, ExCommand<Sender, Argument> cmd,
-      Arguments<Argument> args) {
+  public void onCommand(Sender sender, PluginCommand cmd, Arguments<Argument> args) {
     if (!args.isLengthHigherEquals(1, true)) {
       return;
     }
@@ -73,27 +73,17 @@ public class SurvivalGamesCmd implements CommandListener {
   }
 
   @Override
-  public List<String> getTabCompletion(ExCommand<Sender, Argument> cmd,
-      Arguments<Argument> args) {
-    if (args.getLength() == 1) {
-      return List.of("border", "refill");
-    } else if (args.getLength() == 2) {
-      if (args.get(0).equalsIgnoreCase("border")) {
-        return List.of("begin", "speed");
-      }
-    } else if (args.getLength() == 3) {
-      if (args.get(0).equalsIgnoreCase("border")) {
-        if (args.get(1).equalsIgnoreCase("speed")) {
-          List.of("1", "2", "0.5");
-        }
-      }
-    }
-    return List.of();
+  public Completion getTabCompletion() {
+    return new Completion()
+        .addArgument(new Completion(this.refillPerm, "refill"))
+        .addArgument(new Completion(this.borderPerm, "border")
+            .addArgument(new Completion("begin"))
+            .addArgument(new Completion("speed")
+                .addArgument(new Completion("1", "2", "4"))));
   }
 
   @Override
-  public void loadCodes(Plugin plugin) {
-    this.borderPerm = plugin.createPermssionCode("survivalgames.border");
-    this.refillPerm = plugin.createPermssionCode("survivalgames.refill");
+  public String getPermission() {
+    return this.perm.getPermission();
   }
 }
