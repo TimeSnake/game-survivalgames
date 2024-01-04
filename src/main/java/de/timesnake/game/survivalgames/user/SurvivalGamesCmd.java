@@ -13,7 +13,7 @@ import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.library.chat.ExTextColor;
 import de.timesnake.library.commands.PluginCommand;
 import de.timesnake.library.commands.simple.Arguments;
-import de.timesnake.library.extension.util.chat.Code;
+import de.timesnake.library.chat.Code;
 import net.kyori.adventure.text.Component;
 
 public class SurvivalGamesCmd implements CommandListener {
