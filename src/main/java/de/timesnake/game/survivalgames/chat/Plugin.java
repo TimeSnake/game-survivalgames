@@ -8,7 +8,7 @@ import de.timesnake.library.basic.util.LogHelper;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Plugin extends de.timesnake.library.extension.util.chat.Plugin {
+public class Plugin extends de.timesnake.library.chat.Plugin {
 
   public static final Plugin SURVIVAL_GAMES = new Plugin("SurvivalGames", "GSG",
       LogHelper.getLogger("SurvivalGames", Level.INFO));
