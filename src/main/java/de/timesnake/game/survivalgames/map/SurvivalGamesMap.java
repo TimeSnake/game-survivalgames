@@ -37,17 +37,6 @@ public class SurvivalGamesMap extends Map {
   public static final Integer DEFAULT_PLAYER_BORDER_SHRINK = 2;
   public static final Integer DEFAULT_TIME_BORDER_SHRINK = 480;
 
-  public static final String RADIUS_TOKEN = "radius=";
-  public static final String MIN_ITEMS_TOKEN = "minItems=";
-  public static final String MAX_ITEMS_TOKEN = "maxItems=";
-  public static final String PEACE_TIME_TOKEN = "peace=";
-  public static final String REFILL_TIME_TOKEN = "refill=";
-  public static final String PLAYER_BORDER_SHRINK_TOKEN = "playerborder=";
-  public static final String TIME_BORDER_SHRINK_TOKEN = "timeborder=";
-  public static final String NIGHT_VISION_TOKEN = "nightvision";
-  public static final String NO_FALL_DAMAGE_TOKEN = "nofalldamage";
-  public static final String CHEST_CHANCE_TOKEN = "chestChance=";
-
   private static boolean isBlockAChest(ExBlock block) {
     return block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType()
         .equals(Material.TRAPPED_CHEST);
@@ -66,119 +55,59 @@ public class SurvivalGamesMap extends Map {
   }
 
   private final Set<ExBlock> chests = new HashSet<>();
-  protected Integer radius = DEFAULT_RADIUS;
-  protected Integer minItemsPerChest = DEFAULT_MIN_ITEMS_PER_CHEST;
-  protected Integer maxItemsPerChest = DEFAULT_MAX_ITEMS_PER_CHEST;
-  protected Integer peaceTime = DEFAULT_PEACE_TIME;
-  protected Integer refillTime = DEFAULT_REFILL_TIME;
-  protected Integer playerBorderShrink = DEFAULT_PLAYER_BORDER_SHRINK;
-  protected Integer timeBorderShrink = DEFAULT_TIME_BORDER_SHRINK;
-  protected boolean nightVision = false;
-  protected boolean noFallDamage = false;
-  private float chestChance = 1f;
+  protected final int radius;
+  protected final int minItemsPerChest;
+  protected final int maxItemsPerChest;
+  protected final int peaceTime;
+  protected final int refillTime;
+  protected final int playerBorderShrink;
+  protected final int timeBorderShrink;
+  private final float chestChance;
+  protected final boolean nightVision = false;
+  protected final boolean noFallDamage = false;
 
   public SurvivalGamesMap(DbMap map) {
     super(map, true);
 
-    List<String> infos = map.getInfo();
-    if (info != null) {
+    this.radius = this.getProperty("radius", Integer.class, DEFAULT_RADIUS,
+        v -> Loggers.GAME.warning("Can not load radius of map " + super.name + ", radius is not an integer"));
 
-      for (String info : infos) {
+    this.minItemsPerChest = this.getProperty("min_items", Integer.class, DEFAULT_MIN_ITEMS_PER_CHEST,
+        v -> Loggers.GAME.warning("Can not load minItems of map " + super.name + ", minItems is not an integer"));
 
-        if (info.contains(RADIUS_TOKEN)) {
-          info = info.replace(RADIUS_TOKEN, "");
-          try {
-            this.radius = Integer.parseInt(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning("Can not load radius of map " + super.name + ", " +
-                "info-radius is not an integer");
-          }
-        } else if (info.contains(MIN_ITEMS_TOKEN)) {
-          info = info.replace(MIN_ITEMS_TOKEN, "");
-          try {
-            this.minItemsPerChest = Integer.parseInt(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning("Can not load minItems of map " + super.name + ", " +
-                "info-minItems is not an integer");
-          }
-        } else if (info.contains(MAX_ITEMS_TOKEN)) {
-          info = info.replace(MAX_ITEMS_TOKEN, "");
-          try {
-            this.maxItemsPerChest = Integer.parseInt(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning("Can not load maxItems of map " + super.name + ", " +
-                "info-maxItems is not an integer");
-          }
-        } else if (info.contains(PEACE_TIME_TOKEN)) {
-          info = info.replace(PEACE_TIME_TOKEN, "");
-          try {
-            this.peaceTime = Integer.parseInt(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning("Can not load peace time of map " + super.name +
-                ", " +
-                "info peace time is not an integer");
-          }
-        } else if (info.contains(REFILL_TIME_TOKEN)) {
-          info = info.replace(REFILL_TIME_TOKEN, "");
-          try {
-            this.refillTime = Integer.parseInt(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning("Can not load refill time of map " + super.name +
-                "," +
-                " info refill time is not an integer");
-          }
-        } else if (info.contains(PLAYER_BORDER_SHRINK_TOKEN)) {
-          info = info.replace(PLAYER_BORDER_SHRINK_TOKEN, "");
-          try {
-            this.playerBorderShrink = Integer.parseInt(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning(
-                "Can not load player border shrink of map " + super.name
-                    + ", info player border " +
-                    "shrink is not an integer");
-          }
-        } else if (info.contains(TIME_BORDER_SHRINK_TOKEN)) {
-          info = info.replace(TIME_BORDER_SHRINK_TOKEN, "");
-          try {
-            this.timeBorderShrink = Integer.parseInt(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning("Can not load time border shrink of map " + super.name
-                + ", info time border shrink " +
-                "is not an integer");
-          }
-        } else if (info.contains(NIGHT_VISION_TOKEN)) {
-          this.nightVision = true;
-        } else if (info.contains(NO_FALL_DAMAGE_TOKEN)) {
-          this.noFallDamage = true;
-        } else if (info.contains(CHEST_CHANCE_TOKEN)) {
-          info = info.replace(CHEST_CHANCE_TOKEN, "");
-          try {
-            this.chestChance = Float.parseFloat(info);
-          } catch (NumberFormatException e) {
-            Loggers.GAME.warning("Can not load time chest chance of map " + super.name
-                + ", info time chest chance is " +
-                "not a float");
-          }
-        }
-      }
+    this.maxItemsPerChest = this.getProperty("max_items", Integer.class, DEFAULT_MAX_ITEMS_PER_CHEST,
+        v -> Loggers.GAME.warning("Can not load maxItems of map " + super.name + ", maxItems is not an integer"));
 
-      Loggers.GAME.info("Map " + super.name +
-          " radius: " + this.radius +
-          " minItems: " + this.minItemsPerChest +
-          " maxItems: " + this.maxItemsPerChest +
-          " peace time: " + this.peaceTime +
-          " refill time: " + this.refillTime +
-          " player border shrink: " + this.playerBorderShrink +
-          " time border shrink: " + this.timeBorderShrink +
-          " night vision: " + this.nightVision +
-          " no fall-damage: " + this.noFallDamage +
-          " chest chance: " + this.chestChance);
+    this.peaceTime = this.getProperty("peace_time", Integer.class, DEFAULT_PEACE_TIME,
+        v -> Loggers.GAME.warning("Can not load peace time of map " + super.name + ", peace time is not an integer"));
+
+    this.refillTime = this.getProperty("refill_time", Integer.class, DEFAULT_REFILL_TIME,
+        v -> Loggers.GAME.warning("Can not load refill time of map " + super.name + ", refill time is not an integer"));
+
+    this.playerBorderShrink = this.getProperty("border_player", Integer.class, DEFAULT_PLAYER_BORDER_SHRINK,
+        v -> Loggers.GAME.warning("Can not load player border shrink of map " + super.name + ", border player is not " +
+            "an integer"));
+
+    this.timeBorderShrink = this.getProperty("border_time", Integer.class, DEFAULT_TIME_BORDER_SHRINK,
+        v -> Loggers.GAME.warning("Can not load time border shrink of map " + super.name + ", border time is not an " +
+            "integer"));
+
+    this.chestChance = this.getProperty("chest_chance", Float.class, 1f,
+        v -> Loggers.GAME.warning("Can not load time chest chance of map " + super.name + ", chest chance is not a " +
+            "float"));
 
 
-    } else {
-      Loggers.GAME.warning("Info of map " + super.name + " is null, " + "loaded standard " +
-          "values");
-    }
+    Loggers.GAME.info("Map " + super.name +
+        " radius: " + this.radius +
+        " minItems: " + this.minItemsPerChest +
+        " maxItems: " + this.maxItemsPerChest +
+        " peace time: " + this.peaceTime +
+        " refill time: " + this.refillTime +
+        " player border shrink: " + this.playerBorderShrink +
+        " time border shrink: " + this.timeBorderShrink +
+        " night vision: " + this.nightVision +
+        " no fall-damage: " + this.noFallDamage +
+        " chest chance: " + this.chestChance);
 
     if (this.getWorld() != null) {
       this.world.restrict(ExWorld.Restriction.BLOCK_BREAK, true);
@@ -222,13 +151,11 @@ public class SurvivalGamesMap extends Map {
     }
 
     if (this.getSpawn() == null) {
-      Loggers.GAME.warning("Can not load chests in map " + super.name + ", spawn (number:" +
-          " 0) is null");
+      Loggers.GAME.warning("Can not load chests in map " + super.name + ", spawn (number: 0) is null");
     }
 
     ExLocation spawn = this.getSpawn();
-    Loggers.GAME.info("Map center: " + spawn.getBlockX() + " " + spawn.getBlockY() + " "
-        + spawn.getBlockZ());
+    Loggers.GAME.info("Map center: " + spawn.getBlockX() + " " + spawn.getBlockY() + " " + spawn.getBlockZ());
 
     int xStart = spawn.getBlockX() - this.radius;
     int zStart = spawn.getBlockZ() - this.radius;
