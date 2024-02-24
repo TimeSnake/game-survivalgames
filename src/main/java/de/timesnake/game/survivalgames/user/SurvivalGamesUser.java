@@ -12,7 +12,8 @@ import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServerManager;
-import de.timesnake.library.basic.util.Loggers;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
@@ -22,6 +23,7 @@ import java.util.List;
 
 public class SurvivalGamesUser extends GameUser {
 
+  private final Logger logger = LogManager.getLogger("survival-games.user");
 
   public SurvivalGamesUser(Player player) {
     super(player);
@@ -49,7 +51,7 @@ public class SurvivalGamesUser extends GameUser {
     if (SurvivalGamesServer.getWorldBorder() != null) {
       SurvivalGamesServer.getWorldBorder().addUser(this);
     } else {
-      Loggers.GAME.warning("Unable to set world border for user " + this.getName());
+      this.logger.warn("Unable to set world border for user {}", this.getName());
     }
 
   }
@@ -111,7 +113,7 @@ public class SurvivalGamesUser extends GameUser {
       User damager = this.getLastDamager().getDamager();
       this.sendPluginTDMessage(Plugin.SURVIVAL_GAMES, damager.getTDChatName() + " §shealth: §v"
           + ((GameUser) damager).getHealthDisplay());
-      Loggers.GAME.info(damager.getName() + ": " + ((GameUser) damager).getHealthDisplay());
+      this.logger.info("{}: {}", damager.getName(), ((GameUser) damager).getHealthDisplay());
     }
 
     return super.onGameDeath();

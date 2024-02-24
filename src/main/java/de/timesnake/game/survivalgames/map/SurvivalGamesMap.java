@@ -9,7 +9,8 @@ import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.bukkit.util.world.ExWorld;
 import de.timesnake.basic.game.util.game.Map;
 import de.timesnake.database.util.game.DbMap;
-import de.timesnake.library.basic.util.Loggers;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -54,6 +55,8 @@ public class SurvivalGamesMap extends Map {
     return ((InventoryHolder) block.getBlock().getState()).getInventory();
   }
 
+  private final Logger logger = LogManager.getLogger("survival-games.map");
+
   private final Set<ExBlock> chests = new HashSet<>();
   protected final int radius;
   protected final int minItemsPerChest;
@@ -70,44 +73,34 @@ public class SurvivalGamesMap extends Map {
     super(map, true);
 
     this.radius = this.getProperty("radius", Integer.class, DEFAULT_RADIUS,
-        v -> Loggers.GAME.warning("Can not load radius of map " + super.name + ", radius is not an integer"));
+        v -> this.logger.warn("Can not load radius of map {}, radius is not an integer", super.name));
 
     this.minItemsPerChest = this.getProperty("min_items", Integer.class, DEFAULT_MIN_ITEMS_PER_CHEST,
-        v -> Loggers.GAME.warning("Can not load minItems of map " + super.name + ", minItems is not an integer"));
+        v -> this.logger.warn("Can not load minItems of map {}, minItems is not an integer", super.name));
 
     this.maxItemsPerChest = this.getProperty("max_items", Integer.class, DEFAULT_MAX_ITEMS_PER_CHEST,
-        v -> Loggers.GAME.warning("Can not load maxItems of map " + super.name + ", maxItems is not an integer"));
+        v -> this.logger.warn("Can not load maxItems of map {}, maxItems is not an integer", super.name));
 
     this.peaceTime = this.getProperty("peace_time", Integer.class, DEFAULT_PEACE_TIME,
-        v -> Loggers.GAME.warning("Can not load peace time of map " + super.name + ", peace time is not an integer"));
+        v -> this.logger.warn("Can not load peace time of map {}, peace time is not an integer", super.name));
 
     this.refillTime = this.getProperty("refill_time", Integer.class, DEFAULT_REFILL_TIME,
-        v -> Loggers.GAME.warning("Can not load refill time of map " + super.name + ", refill time is not an integer"));
+        v -> this.logger.warn("Can not load refill time of map {}, refill time is not an integer", super.name));
 
     this.playerBorderShrink = this.getProperty("border_player", Integer.class, DEFAULT_PLAYER_BORDER_SHRINK,
-        v -> Loggers.GAME.warning("Can not load player border shrink of map " + super.name + ", border player is not " +
-            "an integer"));
+        v -> this.logger.warn("Can not load player border shrink of map {}, border player is not an integer", super.name));
 
     this.timeBorderShrink = this.getProperty("border_time", Integer.class, DEFAULT_TIME_BORDER_SHRINK,
-        v -> Loggers.GAME.warning("Can not load time border shrink of map " + super.name + ", border time is not an " +
-            "integer"));
+        v -> this.logger.warn("Can not load time border shrink of map {}, border time is not an integer", super.name));
 
     this.chestChance = this.getProperty("chest_chance", Float.class, 1f,
-        v -> Loggers.GAME.warning("Can not load time chest chance of map " + super.name + ", chest chance is not a " +
-            "float"));
+        v -> this.logger.warn("Can not load time chest chance of map {}, chest chance is not a float", super.name));
 
 
-    Loggers.GAME.info("Map " + super.name +
-        " radius: " + this.radius +
-        " minItems: " + this.minItemsPerChest +
-        " maxItems: " + this.maxItemsPerChest +
-        " peace time: " + this.peaceTime +
-        " refill time: " + this.refillTime +
-        " player border shrink: " + this.playerBorderShrink +
-        " time border shrink: " + this.timeBorderShrink +
-        " night vision: " + this.nightVision +
-        " no fall-damage: " + this.noFallDamage +
-        " chest chance: " + this.chestChance);
+    this.logger.info("Map {}: radius: {}, minItems: {}, maxItems: {}, peace time: {}, refill time: {}, " +
+            "player border shrink: {}, time border shrink: {}, night vision: {}, no fall-damage: {}, chest chance: {}",
+        super.name, this.radius, this.minItemsPerChest, this.maxItemsPerChest, this.peaceTime, this.refillTime,
+        this.playerBorderShrink, this.timeBorderShrink, this.nightVision, this.noFallDamage, this.chestChance);
 
     if (this.getWorld() != null) {
       this.world.restrict(ExWorld.Restriction.BLOCK_BREAK, true);
@@ -146,16 +139,16 @@ public class SurvivalGamesMap extends Map {
 
   public void initChests() {
     if (super.world == null) {
-      Loggers.GAME.warning("Can not load chests in map " + super.name + ", world is null");
+      this.logger.warn("Can not load chests in map '{}', world is null", super.name);
       return;
     }
 
     if (this.getSpawn() == null) {
-      Loggers.GAME.warning("Can not load chests in map " + super.name + ", spawn (number: 0) is null");
+      this.logger.warn("Can not load chests in map {}, spawn (number: 0) is null", super.name);
     }
 
     ExLocation spawn = this.getSpawn();
-    Loggers.GAME.info("Map center: " + spawn.getBlockX() + " " + spawn.getBlockY() + " " + spawn.getBlockZ());
+    this.logger.info("Map center: {} {} {}", spawn.getBlockX(), spawn.getBlockY(), spawn.getBlockZ());
 
     int xStart = spawn.getBlockX() - this.radius;
     int zStart = spawn.getBlockZ() - this.radius;
@@ -174,7 +167,7 @@ public class SurvivalGamesMap extends Map {
       }
     }
 
-    Loggers.GAME.info("Map: " + super.name + " chests: " + this.chests.size());
+    this.logger.info("Map: '{}' chests: {}", super.name, this.chests.size());
   }
 
   public ExLocation getSpawn() {

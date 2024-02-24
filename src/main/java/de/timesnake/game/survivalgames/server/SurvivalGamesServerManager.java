@@ -32,13 +32,14 @@ import de.timesnake.game.survivalgames.item.SurvivalGamesItemManager;
 import de.timesnake.game.survivalgames.main.GameSurvivalGames;
 import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.user.SurvivalGamesUser;
-import de.timesnake.library.basic.util.Loggers;
 import de.timesnake.library.basic.util.TimeCoins;
 import de.timesnake.library.basic.util.statistics.IntegerStat;
 import de.timesnake.library.basic.util.statistics.PercentStat;
 import de.timesnake.library.basic.util.statistics.StatPeriod;
 import de.timesnake.library.basic.util.statistics.StatType;
 import de.timesnake.library.chat.Chat;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
@@ -80,6 +81,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   public static SurvivalGamesServerManager getInstance() {
     return (SurvivalGamesServerManager) ServerManager.getInstance();
   }
+
+  private Logger logger = LogManager.getLogger("survival-games.server");
 
   private SurvivalGamesItemManager itemManager;
   private Integer chestLevel = 0;
@@ -170,7 +173,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     Location spawn = this.getMap().getLocation(this.spawnIndex);
     if (spawn == null) {
       if (this.spawnIndex == 1) {
-        Loggers.GAME.warning("Too few spawns in map " + this.getMap().getName());
+        this.logger.warn("Too few spawns in map '{}'", this.getMap().getName());
         return this.getMap().getSpectatorSpawn();
       }
       this.spawnIndex = 1;
@@ -195,7 +198,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     SurvivalGamesMap map = this.getMap();
     this.itemManager.fillMapChests(this.chestLevel);
     this.chestLevel++;
-    Loggers.GAME.info("Chests filled in map " + map.getName());
+    this.logger.info("Chests filled in map '{}'", map.getName());
     map.getWorld().setTime(1000);
 
     if (this.worldBorder != null) {
@@ -438,7 +441,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     this.spawnIndex = 1;
     this.shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
     Server.getWorldManager().reloadWorld(this.getMap().getWorld());
-    Loggers.GAME.info("Reloaded world " + this.getMap().getWorld().getName());
+    this.logger.info("Reloaded world '{}'", this.getMap().getWorld().getName());
   }
 
   @Override
