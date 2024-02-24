@@ -9,19 +9,19 @@ import de.timesnake.database.util.Database;
 import de.timesnake.database.util.hungergames.DbHungerGamesItem;
 import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
-import de.timesnake.library.basic.util.Loggers;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.*;
+
 public class SurvivalGamesItemManager {
 
   private static final Double LEVEL_CHANCE = 0.5;
+
+  private final Logger logger = LogManager.getLogger("survival-games.items");
 
   private final Random random = new Random();
 
@@ -37,7 +37,7 @@ public class SurvivalGamesItemManager {
       try {
         item = new SurvivalGamesItem(dbItem);
       } catch (InvalidSurvivalGamesItemTypeException e) {
-        Loggers.GAME.warning("Item: " + e.getMessage());
+        this.logger.warn("Item: {}", e.getMessage());
         continue;
       }
 
@@ -49,9 +49,8 @@ public class SurvivalGamesItemManager {
 
       items.add(item);
       this.itemsByLevel.put(item.getLevel(), items);
-      Loggers.GAME.info("Added item " + item.getItem().getType().name().toLowerCase() + " "
-          + item.getItem().getAmount() + " chance " + item.getChance() + " level "
-          + item.getLevel());
+      this.logger.info("Added item '{}' {} chance {} level {}", item.getItem().getType().name().toLowerCase(),
+          item.getItem().getAmount(), item.getChance(), item.getLevel());
 
       Float chanceSum = this.chanceSumPerLevel.get(item.getLevel());
 
@@ -150,7 +149,7 @@ public class SurvivalGamesItemManager {
   private ItemStack getRandomItem(Integer level) {
     if (this.chanceSumPerLevel.get(level) == null) {
       if (level.equals(0)) {
-        Loggers.GAME.warning("Too few items");
+        this.logger.warn("Too few items");
         return null;
       } else {
         return this.getRandomItem(level - 1);
