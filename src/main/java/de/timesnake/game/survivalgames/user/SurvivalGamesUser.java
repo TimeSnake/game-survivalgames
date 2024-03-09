@@ -59,7 +59,7 @@ public class SurvivalGamesUser extends GameUser {
   public void setSideboardTeam() {
     if (this.getTeam() != null) {
       SurvivalGamesServer.getGameSideboard().updateScore4User(this, LineId.TEAM,
-          this.getTeam().getChatColor() + this.getTeam().getDisplayName());
+          this.getTeam().getTDColor() + this.getTeam().getDisplayName());
     }
   }
 
