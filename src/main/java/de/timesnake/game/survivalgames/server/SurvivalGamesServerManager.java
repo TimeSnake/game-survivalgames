@@ -6,7 +6,7 @@ package de.timesnake.game.survivalgames.server;
 
 import de.timesnake.basic.bukkit.util.Server;
 import de.timesnake.basic.bukkit.util.ServerManager;
-import de.timesnake.basic.bukkit.util.chat.ChatColor;
+import de.timesnake.basic.bukkit.util.server.ExTime;
 import de.timesnake.basic.bukkit.util.user.User;
 import de.timesnake.basic.bukkit.util.user.event.UserDamageByUserEvent;
 import de.timesnake.basic.bukkit.util.user.event.UserDamageEvent;
@@ -15,14 +15,16 @@ import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
 import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboardBuilder;
 import de.timesnake.basic.bukkit.util.user.scoreboard.Sideboard;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
-import de.timesnake.basic.bukkit.util.world.ExWorldBorder;
 import de.timesnake.basic.game.util.game.Map;
 import de.timesnake.basic.game.util.game.Team;
 import de.timesnake.basic.loungebridge.util.game.TmpGame;
 import de.timesnake.basic.loungebridge.util.server.EndMessage;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServerManager;
+import de.timesnake.basic.loungebridge.util.tool.ToolWatcher;
+import de.timesnake.basic.loungebridge.util.tool.advanced.BossBarMapTimerTool;
 import de.timesnake.basic.loungebridge.util.tool.advanced.PlayerNumberTool;
+import de.timesnake.basic.loungebridge.util.tool.advanced.WorldBorderTool;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.database.util.game.DbGame;
 import de.timesnake.database.util.game.DbMap;
@@ -43,9 +45,6 @@ import org.apache.logging.log4j.Logger;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -54,7 +53,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.time.Duration;
 import java.util.Set;
 
 public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGame> implements
@@ -62,12 +60,10 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
   public static final String SIDEBOARD_TITLE = "§6§lSurvivalGames";
   public static final Integer START_TIME = 1000;
-  public static final Integer WORLD_BORDER_WARNING = 5;
-  public static final Double WORLD_BORDER_DAMAGE = 1d;
   public static final Double MIN_BORDER_SIZE = 30d;
   public static final Double BORDER_SHRINKING_TIME_MULTIPLIER = 1.5d;
-  public static final Integer BORDER_DELAY_MIN_TO_0 = 2 * 60;
   public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
+
   public static final StatType<Integer> WINS = new IntegerStat("wins", "Wins", 0, 10, 2, true, 0,
       1);
   public static final StatType<Float> WIN_CHANCE = new PercentStat("win_chance", "Win Chance", 0f,
@@ -89,16 +85,13 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   private boolean stopAfterStart = false;
   private ExSideboard sideboard;
   private ExSideboard spectatorSideboard;
-  private BossBar peaceTimeBar;
   private Integer spawnIndex = 1;
   private BukkitTask refillTask;
   private Integer refillTime;
-  private BukkitTask peaceTimeTask;
-  private Integer peaceTime;
-  private BukkitTask borderTask;
-  private boolean shrinkingBorder;
-  private Double shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
-  private ExWorldBorder worldBorder;
+
+  private WorldBorderTool worldBorderTool;
+  private BossBarMapTimerTool peaceBarTimer;
+
   private BukkitTask pvpHintTask;
   private User winnerUser;
   private Team winnerTeam;
@@ -131,7 +124,22 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     this.spectatorSideboard = Server.getScoreboardManager()
         .registerExSideboard(spectatorSideboardBuilder);
 
-    this.peaceTimeBar = Server.createBossBar("", BarColor.RED, BarStyle.SOLID);
+    this.peaceBarTimer = new BossBarMapTimerTool() {
+      @Override
+      public String getTitle(String time) {
+        return "Peace time ends in §c" + time;
+      }
+
+      @Override
+      public ToolWatcher getWatchers() {
+        return ToolWatcher.ALL;
+      }
+
+      @Override
+      public String getChatMessage(String time) {
+        return "§pPeace time ends in §v" + time;
+      }
+    };
 
     if (LoungeBridgeServer.getServerTeamAmount() > 0) {
       LoungeBridgeServer.setTeamMateDamage(false);
@@ -152,6 +160,33 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         }
       }
     });
+
+    this.worldBorderTool = new WorldBorderTool() {
+      @Override
+      public Location getBorderCenter() {
+        return SurvivalGamesServerManager.this.getMap().getSpectatorSpawn();
+      }
+
+      @Override
+      public double getBorderSize() {
+        return SurvivalGamesServerManager.this.getMap().getRadius();
+      }
+
+      @Override
+      public double getBorderDamagePerSec() {
+        return 1;
+      }
+
+      @Override
+      public void onShrink() {
+        Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
+        Server.runTaskLaterSynchrony(
+            () -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
+            GameSurvivalGames.getPlugin());
+        SurvivalGamesServer.broadcastGameTDMessage("§wThe border begins to shrink. Watch out!");
+      }
+    };
+    this.getToolManager().add(this.worldBorderTool);
   }
 
   @Override
@@ -201,28 +236,9 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     this.logger.info("Chests filled in map '{}'", map.getName());
     map.getWorld().setTime(1000);
 
-    if (this.worldBorder != null) {
-      this.worldBorder.destroy();
-    }
-
     for (Entity entity : map.getWorld().getEntitiesByClass(Item.class)) {
       entity.remove();
     }
-
-    map.getWorld().getWorldBorder().reset();
-    this.worldBorder = new ExWorldBorder.Builder()
-        .world(map.getWorld())
-        .centerX(map.getSpectatorSpawn().getX())
-        .centerZ(map.getSpectatorSpawn().getZ())
-        .size(map.getRadius() * 2)
-        .warningDistance(WORLD_BORDER_WARNING)
-        .damagePerSec(WORLD_BORDER_DAMAGE)
-        .sound(true).build();
-
-    this.peaceTime = this.getMap().getPeaceTime();
-
-    this.peaceTimeBar.setTitle("Peace time ends in " + ChatColor.RED + Chat.getTimeString(this.peaceTime));
-    this.peaceTimeBar.setProgress(1);
 
     this.updateMapOnSideboard();
   }
@@ -234,38 +250,11 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }
 
     this.getMap().getWorld().setTime(START_TIME);
-    this.startPeaceTime();
     this.startRefillTask();
-    this.startBorderTask();
+    this.worldBorderTool.shrinkBorder(MIN_BORDER_SIZE,
+        ExTime.ofSeconds((int) (this.getMap().getRadius() * 2 * BORDER_SHRINKING_TIME_MULTIPLIER)),
+        ExTime.ofSeconds(this.getMap().getTimeBorderShrink()));
     this.startPvPHintTask();
-  }
-
-  public void startPeaceTime() {
-    if (!(peaceTime.equals(60) || peaceTime.equals(30) || peaceTime.equals(10)
-        || peaceTime.equals(5) || peaceTime.equals(0))) {
-      this.broadcastGameTDMessage("Peace time ends in §v" + Chat.getTimeString(this.peaceTime));
-    }
-
-    if (peaceTime > 0) {
-      this.peaceTimeTask = Server.runTaskTimerSynchrony(() -> {
-        switch (peaceTime) {
-          case 60, 30, 10, 5 ->
-              this.broadcastGameTDMessage("§pPeace time ends in §v" + Chat.getTimeString(this.peaceTime));
-          case 0 -> {
-            this.broadcastGameTDMessage("Peace time ends §wnow");
-            Server.broadcastTDTitle("", "§wPeace time has ended!", Duration.ofSeconds(3));
-            Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
-            Server.getGameUsers().forEach(u -> u.removeBossBar(this.peaceTimeBar));
-            this.peaceTimeTask.cancel();
-          }
-        }
-
-        this.peaceTimeBar.setTitle("Peace time ends in §w" + ChatColor.RED + Chat.getTimeString(this.peaceTime));
-        this.peaceTimeBar.setProgress(peaceTime / ((double) this.getMap().getPeaceTime()));
-
-        this.peaceTime--;
-      }, 0, 20, GameSurvivalGames.getPlugin());
-    }
   }
 
   public void startRefillTask() {
@@ -292,12 +281,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     }, 0, 20, GameSurvivalGames.getPlugin());
   }
 
-  public void startBorderTask() {
-    this.borderTask = Server.runTaskLaterSynchrony(this::shrinkBorder,
-        this.getMap().getTimeBorderShrink() * 20,
-        GameSurvivalGames.getPlugin());
-  }
-
   public void checkPlayerBorderShrink() {
     if (Server.getInGameUsers().size() <= this.getMap().getPlayerBorderShrink() || (
         LoungeBridgeServer.getNotEmptyGameTeams().size() <= this.getMap()
@@ -307,33 +290,11 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   }
 
   public void shrinkBorder() {
-    if (this.shrinkingBorder) {
-      return;
-    }
-
     if (!this.isGameRunning()) {
       return;
     }
-
-    this.shrinkingBorder = true;
-
-    Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A));
-    Server.runTaskLaterSynchrony(
-        () -> Server.broadcastNote(Instrument.PLING, Note.natural(1, Note.Tone.A)), 10,
-        GameSurvivalGames.getPlugin());
-    this.broadcastGameTDMessage("§wThe border begins to shrink. Watch out!");
-    this.worldBorder.setSize(MIN_BORDER_SIZE, (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20), false);
-
-    if (this.borderTask != null) {
-      this.borderTask.cancel();
-    }
-
-    this.borderTask = Server.runTaskLaterSynchrony(() -> {
-          this.worldBorder.setSize(0, (int) (MIN_BORDER_SIZE * 20 * 2 * this.shrinkSpeed), false);
-          this.broadcastGameTDMessage("§wThe border begins to shrink. Watch out!");
-        },
-        (int) (this.getMap().getRadius() * 2 * this.shrinkSpeed * 20) + BORDER_DELAY_MIN_TO_0 * 20,
-        GameSurvivalGames.getPlugin());
+    this.worldBorderTool.shrinkBorder(MIN_BORDER_SIZE,
+        ExTime.ofSeconds((int) (this.getMap().getRadius() * 2 * BORDER_SHRINKING_TIME_MULTIPLIER)));
   }
 
   public void startPvPHintTask() {
@@ -355,21 +316,9 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       this.refillTask.cancel();
     }
 
-    if (this.peaceTimeTask != null) {
-      this.peaceTimeTask.cancel();
-    }
-
     if (this.pvpHintTask != null) {
       this.pvpHintTask.cancel();
     }
-
-    if (this.borderTask != null) {
-      this.borderTask.cancel();
-    }
-
-    this.shrinkingBorder = false;
-
-    this.worldBorder.setSize(this.getMap().getRadius() * 2);
 
     for (User user : Server.getInGameUsers()) {
       user.getPlayer().setInvulnerable(true);
@@ -406,7 +355,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   @EventHandler
   public void onUserDamageByUser(UserDamageByUserEvent e) {
     SurvivalGamesUser user = ((SurvivalGamesUser) e.getUser());
-    if (this.peaceTime == null || this.peaceTime > 0 || !this.isGameRunning()) {
+    if (this.peaceBarTimer.getTime() > 0 || !this.isGameRunning()) {
       if (!LoungeBridgeServer.allowTeamMateDamage()) {
         if (!user.isTeamMate(((SurvivalGamesUser) e.getUserDamager()))) {
           if (this.isGameRunning()) {
@@ -439,7 +388,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   public void onGameReset() {
     this.stopAfterStart = false;
     this.spawnIndex = 1;
-    this.shrinkSpeed = BORDER_SHRINKING_TIME_MULTIPLIER;
     Server.getWorldManager().reloadWorld(this.getMap().getWorld());
     this.logger.info("Reloaded world '{}'", this.getMap().getWorld().getName());
   }
@@ -472,7 +420,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   @Override
   public boolean checkGameEnd() {
     return Server.getInGameUsers().size() <= 1 || (LoungeBridgeServer.getNotEmptyGameTeams().size() <= 1
-            && LoungeBridgeServer.getServerTeamAmount() > 0);
+                                                   && LoungeBridgeServer.getServerTeamAmount() > 0);
   }
 
   public void updateMapOnSideboard() {
@@ -484,35 +432,12 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     return sideboard;
   }
 
-  public ExWorldBorder getWorldBorder() {
-    return worldBorder;
-  }
-
   public Integer getRefillTime() {
     return refillTime;
   }
 
   public void setRefillTime(Integer refillTime) {
     this.refillTime = refillTime;
-  }
-
-  public Double getShrinkSpeed() {
-    return shrinkSpeed;
-  }
-
-  public void setShrinkSpeed(Double shrinkSpeed) {
-    this.shrinkSpeed = shrinkSpeed;
-    if (this.shrinkingBorder) {
-      if (this.worldBorder.getSize() >= MIN_BORDER_SIZE) {
-        this.worldBorder.setSize(MIN_BORDER_SIZE,
-            (int) (this.worldBorder.getSize() * this.shrinkSpeed * 20),
-            true);
-      }
-    }
-  }
-
-  public BossBar getPeaceTimeBar() {
-    return peaceTimeBar;
   }
 
   @Override

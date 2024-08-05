@@ -36,7 +36,6 @@ public class SurvivalGamesUser extends GameUser {
     this.setDefault();
     this.teleport(SurvivalGamesServer.nextSpawn());
     this.lockLocation();
-    this.setBossBar(SurvivalGamesServer.getPeaceTimeBar());
 
     if (LoungeBridgeServer.getServerTeamAmount() > 0) {
       this.setSideboardTeam();
@@ -47,13 +46,6 @@ public class SurvivalGamesUser extends GameUser {
     } else {
       this.removePotionEffects();
     }
-
-    if (SurvivalGamesServer.getWorldBorder() != null) {
-      SurvivalGamesServer.getWorldBorder().addUser(this);
-    } else {
-      this.logger.warn("Unable to set world border for user {}", this.getName());
-    }
-
   }
 
   public void setSideboardTeam() {
@@ -84,7 +76,6 @@ public class SurvivalGamesUser extends GameUser {
   @Override
   public void joinSpectator() {
     super.joinSpectator();
-    SurvivalGamesServer.getWorldBorder().addSpectator(this);
 
     if (SurvivalGamesServer.getMap().isNightVision()) {
       this.addPotionEffect(PotionEffectType.NIGHT_VISION, 1);
@@ -102,7 +93,6 @@ public class SurvivalGamesUser extends GameUser {
 
   @Override
   public @Nullable ExLocation getRespawnLocation() {
-    SurvivalGamesServer.getWorldBorder().removeUser(this);
     this.joinSpectator();
     return SurvivalGamesServer.getSpectatorSpawn();
   }
