@@ -8,6 +8,7 @@ import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.bukkit.util.world.ExWorld;
 import de.timesnake.basic.game.util.game.Map;
+import de.timesnake.basic.loungebridge.util.tool.Timeable;
 import de.timesnake.database.util.game.DbMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,7 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SurvivalGamesMap extends Map {
+public class SurvivalGamesMap extends Map implements Timeable {
 
   public static final Integer SPECTATOR_SPAWN_INDEX = 0;
 
@@ -220,5 +221,10 @@ public class SurvivalGamesMap extends Map {
 
   public float getChestChance() {
     return chestChance;
+  }
+
+  @Override
+  public int getTime() {
+    return this.getPeaceTime();
   }
 }
