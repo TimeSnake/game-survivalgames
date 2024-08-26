@@ -140,6 +140,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
         return "§pPeace time ends in §v" + time;
       }
     };
+    this.getToolManager().add(this.peaceBarTimer);
 
     if (LoungeBridgeServer.getServerTeamAmount() > 0) {
       LoungeBridgeServer.setTeamMateDamage(false);
@@ -240,6 +241,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       entity.remove();
     }
 
+    this.peaceBarTimer.setTime(map.getPeaceTime());
     this.updateMapOnSideboard();
   }
 
@@ -254,6 +256,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     this.worldBorderTool.shrinkBorder(MIN_BORDER_SIZE,
         ExTime.ofSeconds((int) (this.getMap().getRadius() * 2 * BORDER_SHRINKING_TIME_MULTIPLIER)),
         ExTime.ofSeconds(this.getMap().getTimeBorderShrink()));
+    this.peaceBarTimer.start();
     this.startPvPHintTask();
   }
 
