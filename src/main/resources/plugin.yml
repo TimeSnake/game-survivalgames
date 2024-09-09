@@ -2,7 +2,7 @@ main: de.timesnake.game.survivalgames.main.GameSurvivalGames
 version: 1.4.0
 name: game-hungergames
 author: timesnake
-api-version: 1.13
+api-version: 1.21
 depend: [ basic-lounge-bridge ]
 
 commands:
