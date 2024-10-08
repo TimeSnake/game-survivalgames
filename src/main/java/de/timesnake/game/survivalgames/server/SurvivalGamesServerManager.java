@@ -405,12 +405,12 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     super.saveGameUserStats(user);
 
     if (user.equals(this.winnerUser)) {
-      user.getStat(WINS).increaseAll(1);
+      user.getStat(WINS).increaseAllBy(1);
     } else if (this.winnerTeam != null && this.winnerTeam.getUsers().contains(user)) {
-      user.getStat(WINS).increaseAll(1);
+      user.getStat(WINS).increaseAllBy(1);
     }
 
-    user.getStat(KILLS).increaseAll(user.getKills());
+    user.getStat(KILLS).increaseAllBy(user.getKills());
 
     for (StatPeriod period : StatPeriod.values()) {
       Integer wins = user.getStat(WINS).get(period);
