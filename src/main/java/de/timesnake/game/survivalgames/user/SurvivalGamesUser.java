@@ -33,7 +33,6 @@ public class SurvivalGamesUser extends GameUser {
   public void onGameJoin() {
     super.onGameJoin();
 
-    this.setDefault();
     this.teleport(SurvivalGamesServer.nextSpawn());
     this.lockLocation();
 
