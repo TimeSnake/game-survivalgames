@@ -58,8 +58,6 @@ import java.util.Set;
 public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGame> implements
     Listener {
 
-  public static final String SIDEBOARD_TITLE = "§6§lSurvivalGames";
-  public static final Integer START_TIME = 1000;
   public static final Double MIN_BORDER_SIZE = 30d;
   public static final Double BORDER_SHRINKING_TIME_MULTIPLIER = 1.5d;
   public static final double BOW_DAMAGE_MULTIPLIER = 0.7;
@@ -78,7 +76,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     return (SurvivalGamesServerManager) ServerManager.getInstance();
   }
 
-  private Logger logger = LogManager.getLogger("survival-games.server");
+  private final Logger logger = LogManager.getLogger("survival-games.server");
 
   private SurvivalGamesItemManager itemManager;
   private Integer chestLevel = 0;
@@ -93,8 +91,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   private BossBarMapTimerTool peaceBarTimer;
 
   private BukkitTask pvpHintTask;
-  private User winnerUser;
-  private Team winnerTeam;
 
   public void onHungerGamesEnable() {
     super.onLoungeBridgeEnable();
@@ -102,7 +98,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     ExSideboardBuilder sideboardBuilder = new ExSideboardBuilder()
         .name("survivalgames")
-        .title(SIDEBOARD_TITLE)
+        .title("§6§lSurvivalGames")
         .lineSpacer();
 
     if (LoungeBridgeServer.getServerTeamAmount() > 0) {
@@ -116,7 +112,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     ExSideboardBuilder spectatorSideboardBuilder = new ExSideboardBuilder()
         .name("sg_spec")
-        .title(SIDEBOARD_TITLE)
+        .title("§6§lSurvivalGames")
         .lineSpacer()
         .addLine(LineId.PLAYERS_OF)
         .addLine(LineId.MAP);
@@ -138,6 +134,11 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       @Override
       public String getChatMessage(String time) {
         return "§pPeace time ends in §v" + time;
+      }
+
+      @Override
+      public String getEndChatMessage() {
+        return "§pPeace time ends §wnow";
       }
     };
     this.getToolManager().add(this.peaceBarTimer);
@@ -170,7 +171,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
       @Override
       public double getBorderSize() {
-        return SurvivalGamesServerManager.this.getMap().getRadius();
+        return SurvivalGamesServerManager.this.getMap().getRadius() * 2;
       }
 
       @Override
@@ -251,7 +252,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       this.stopGame();
     }
 
-    this.getMap().getWorld().setTime(START_TIME);
+    this.getMap().getWorld().setTime(1000);
     this.startRefillTask();
     this.worldBorderTool.shrinkBorder(MIN_BORDER_SIZE,
         ExTime.ofSeconds((int) (this.getMap().getRadius() * 2 * BORDER_SHRINKING_TIME_MULTIPLIER)),
@@ -292,7 +293,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   }
 
   public void shrinkBorder() {
-    if (!this.isGameRunning()) {
+    if (!this.isGameRunning() || this.worldBorderTool.getBorder().isShrinking()) {
       return;
     }
     this.worldBorderTool.shrinkBorder(MIN_BORDER_SIZE,
@@ -329,9 +330,18 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     EndMessage endMessage = new EndMessage();
 
     if (LoungeBridgeServer.getServerTeamAmount() == 0) {
-      endMessage.winner(Server.getInGameUsers().stream().findAny().orElse(null));
+      GameUser user = (GameUser) Server.getInGameUsers().stream().findAny().orElse(null);
+      if (user != null) {
+        endMessage.winner(user);
+        user.setGameWinner();
+      }
     } else {
-      endMessage.winner(LoungeBridgeServer.getNotEmptyGameTeams().stream().findAny().orElse(null));
+      Team team = LoungeBridgeServer.getNotEmptyGameTeams().stream().findAny().orElse(null);
+
+      if (team != null) {
+        endMessage.winner(team);
+        team.getUsers().forEach(u -> ((GameUser) u).setGameWinner());
+      }
     }
 
     endMessage.addStat("Kills", Server.getInOutGameUsers(), 3, GameUser::getKills)
@@ -403,9 +413,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   public void saveGameUserStats(GameUser user) {
     super.saveGameUserStats(user);
 
-    if (user.equals(this.winnerUser)) {
-      user.getStat(WINS).increaseAllBy(1);
-    } else if (this.winnerTeam != null && this.winnerTeam.getUsers().contains(user)) {
+    if (user.isGameWinner()) {
       user.getStat(WINS).increaseAllBy(1);
     }
 
