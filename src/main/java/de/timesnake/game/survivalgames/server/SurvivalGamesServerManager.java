@@ -29,10 +29,8 @@ import de.timesnake.basic.loungebridge.util.user.GameUser;
 import de.timesnake.database.util.game.DbGame;
 import de.timesnake.database.util.game.DbMap;
 import de.timesnake.database.util.game.DbTmpGame;
-import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.item.SurvivalGamesItemManager;
 import de.timesnake.game.survivalgames.main.GameSurvivalGames;
-import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.user.SurvivalGamesUser;
 import de.timesnake.library.basic.util.TimeCoins;
 import de.timesnake.library.basic.util.statistics.IntegerStat;
@@ -40,6 +38,7 @@ import de.timesnake.library.basic.util.statistics.PercentStat;
 import de.timesnake.library.basic.util.statistics.StatPeriod;
 import de.timesnake.library.basic.util.statistics.StatType;
 import de.timesnake.library.chat.Chat;
+import de.timesnake.library.chat.Plugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Instrument;
@@ -226,11 +225,6 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   }
 
   @Override
-  public Plugin getGamePlugin() {
-    return Plugin.SURVIVAL_GAMES;
-  }
-
-  @Override
   public void onMapLoad() {
     SurvivalGamesMap map = this.getMap();
     this.itemManager.fillMapChests(this.chestLevel);
@@ -371,7 +365,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
       if (!LoungeBridgeServer.allowTeamMateDamage()) {
         if (!user.isTeamMate(((SurvivalGamesUser) e.getUserDamager()))) {
           if (this.isGameRunning()) {
-            e.getUserDamager().sendPluginTDMessage(Plugin.SURVIVAL_GAMES, "§wPeace time is not over");
+            e.getUserDamager().sendPluginTDMessage(Plugin.GAME, "§wPeace time is not over");
           }
         }
       }

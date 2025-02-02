@@ -6,7 +6,6 @@ package de.timesnake.game.survivalgames.server;
 
 import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
-import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
 import org.bukkit.Location;
 
 public class SurvivalGamesServer extends LoungeBridgeServer {

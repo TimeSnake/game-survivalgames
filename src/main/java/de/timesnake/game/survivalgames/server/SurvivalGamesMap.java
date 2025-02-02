@@ -2,7 +2,7 @@
  * Copyright (C) 2023 timesnake
  */
 
-package de.timesnake.game.survivalgames.map;
+package de.timesnake.game.survivalgames.server;
 
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.basic.bukkit.util.world.ExLocation;

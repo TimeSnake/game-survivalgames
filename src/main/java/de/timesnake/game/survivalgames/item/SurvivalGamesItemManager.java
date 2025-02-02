@@ -7,7 +7,7 @@ package de.timesnake.game.survivalgames.item;
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.database.util.Database;
 import de.timesnake.database.util.hungergames.DbHungerGamesItem;
-import de.timesnake.game.survivalgames.map.SurvivalGamesMap;
+import de.timesnake.game.survivalgames.server.SurvivalGamesMap;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

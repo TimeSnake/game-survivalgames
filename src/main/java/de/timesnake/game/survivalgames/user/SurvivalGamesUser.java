@@ -9,9 +9,9 @@ import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
-import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServerManager;
+import de.timesnake.library.chat.Plugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.entity.Player;
@@ -100,8 +100,8 @@ public class SurvivalGamesUser extends GameUser {
   public List<ItemStack> onGameDeath() {
     if (this.getLastDamager() != null) {
       User damager = this.getLastDamager().getDamager();
-      this.sendPluginTDMessage(Plugin.SURVIVAL_GAMES, damager.getTDChatName() + " §shealth: §v"
-          + ((GameUser) damager).getHealthDisplay());
+      this.sendPluginTDMessage(Plugin.GAME, damager.getTDChatName() + " §shealth: §v"
+                                            + ((GameUser) damager).getHealthDisplay());
       this.logger.info("{}: {}", damager.getName(), ((GameUser) damager).getHealthDisplay());
     }
 
