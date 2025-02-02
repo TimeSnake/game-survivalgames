@@ -8,18 +8,18 @@ import de.timesnake.basic.bukkit.util.chat.cmd.Argument;
 import de.timesnake.basic.bukkit.util.chat.cmd.CommandListener;
 import de.timesnake.basic.bukkit.util.chat.cmd.Completion;
 import de.timesnake.basic.bukkit.util.chat.cmd.Sender;
-import de.timesnake.game.survivalgames.chat.Plugin;
 import de.timesnake.game.survivalgames.server.SurvivalGamesServer;
 import de.timesnake.library.chat.Code;
 import de.timesnake.library.chat.ExTextColor;
+import de.timesnake.library.chat.Plugin;
 import de.timesnake.library.commands.PluginCommand;
 import de.timesnake.library.commands.simple.Arguments;
 import net.kyori.adventure.text.Component;
 
 public class SurvivalGamesCmd implements CommandListener {
 
-  private final Code perm = Plugin.SURVIVAL_GAMES.createPermssionCode("survivalgames");
-  private final Code refillPerm = Plugin.SURVIVAL_GAMES.createPermssionCode("survivalgames.refill");
+  private final Code perm = Plugin.GAME.createPermssionCode("survivalgames");
+  private final Code refillPerm = Plugin.GAME.createPermssionCode("survivalgames.refill");
 
   @Override
   public void onCommand(Sender sender, PluginCommand cmd, Arguments<Argument> args) {
