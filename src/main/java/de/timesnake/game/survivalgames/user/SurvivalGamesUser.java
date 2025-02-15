@@ -5,7 +5,7 @@
 package de.timesnake.game.survivalgames.user;
 
 import de.timesnake.basic.bukkit.util.user.User;
-import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
+import de.timesnake.basic.bukkit.util.user.scoreboard.KeyedSideboard.LineId;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import de.timesnake.basic.loungebridge.util.user.GameUser;
