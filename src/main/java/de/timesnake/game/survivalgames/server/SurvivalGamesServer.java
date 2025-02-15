@@ -4,7 +4,7 @@
 
 package de.timesnake.game.survivalgames.server;
 
-import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard;
+import de.timesnake.basic.bukkit.util.user.scoreboard.KeyedSideboard;
 import de.timesnake.basic.loungebridge.util.server.LoungeBridgeServer;
 import org.bukkit.Location;
 
@@ -26,7 +26,7 @@ public class SurvivalGamesServer extends LoungeBridgeServer {
     server.setRefillTime(time);
   }
 
-  public static ExSideboard getGameSideboard() {
+  public static KeyedSideboard getGameSideboard() {
     return server.getGameSideboard();
   }
 

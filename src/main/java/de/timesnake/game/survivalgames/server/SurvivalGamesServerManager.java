@@ -10,9 +10,9 @@ import de.timesnake.basic.bukkit.util.server.ExTime;
 import de.timesnake.basic.bukkit.util.user.User;
 import de.timesnake.basic.bukkit.util.user.event.UserDamageByUserEvent;
 import de.timesnake.basic.bukkit.util.user.event.UserDamageEvent;
-import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard;
-import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboard.LineId;
-import de.timesnake.basic.bukkit.util.user.scoreboard.ExSideboardBuilder;
+import de.timesnake.basic.bukkit.util.user.scoreboard.KeyedSideboard;
+import de.timesnake.basic.bukkit.util.user.scoreboard.KeyedSideboard.LineId;
+import de.timesnake.basic.bukkit.util.user.scoreboard.KeyedSideboardBuilder;
 import de.timesnake.basic.bukkit.util.user.scoreboard.Sideboard;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
 import de.timesnake.basic.game.util.game.Map;
@@ -80,8 +80,8 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   private SurvivalGamesItemManager itemManager;
   private Integer chestLevel = 0;
   private boolean stopAfterStart = false;
-  private ExSideboard sideboard;
-  private ExSideboard spectatorSideboard;
+  private KeyedSideboard sideboard;
+  private KeyedSideboard spectatorSideboard;
   private Integer spawnIndex = 1;
   private BukkitTask refillTask;
   private Integer refillTime;
@@ -95,7 +95,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
     super.onLoungeBridgeEnable();
     this.itemManager = new SurvivalGamesItemManager();
 
-    ExSideboardBuilder sideboardBuilder = new ExSideboardBuilder()
+    KeyedSideboardBuilder sideboardBuilder = new KeyedSideboardBuilder()
         .name("survivalgames")
         .title("§6§lSurvivalGames")
         .lineSpacer();
@@ -109,7 +109,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
 
     this.sideboard = Server.getScoreboardManager().registerExSideboard(sideboardBuilder);
 
-    ExSideboardBuilder spectatorSideboardBuilder = new ExSideboardBuilder()
+    KeyedSideboardBuilder spectatorSideboardBuilder = new KeyedSideboardBuilder()
         .name("sg_spec")
         .title("§6§lSurvivalGames")
         .lineSpacer()
@@ -432,7 +432,7 @@ public class SurvivalGamesServerManager extends LoungeBridgeServerManager<TmpGam
   }
 
   @Override
-  public ExSideboard getGameSideboard() {
+  public KeyedSideboard getGameSideboard() {
     return sideboard;
   }
 
