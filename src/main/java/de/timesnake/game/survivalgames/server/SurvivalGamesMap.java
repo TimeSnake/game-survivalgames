@@ -6,7 +6,7 @@ package de.timesnake.game.survivalgames.server;
 
 import de.timesnake.basic.bukkit.util.world.ExBlock;
 import de.timesnake.basic.bukkit.util.world.ExLocation;
-import de.timesnake.basic.bukkit.util.world.ExWorld;
+import de.timesnake.basic.bukkit.util.world.ExWorldOption;
 import de.timesnake.basic.game.util.game.Map;
 import de.timesnake.basic.loungebridge.util.tool.Timeable;
 import de.timesnake.database.util.game.DbMap;
@@ -104,21 +104,20 @@ public class SurvivalGamesMap extends Map implements Timeable {
         this.playerBorderShrink, this.timeBorderShrink, this.nightVision, this.noFallDamage, this.chestChance);
 
     if (this.getWorld() != null) {
-      this.world.restrict(ExWorld.Restriction.BLOCK_BREAK, true);
-      this.world.restrict(ExWorld.Restriction.ENTITY_BLOCK_BREAK, true);
-      this.world.restrict(ExWorld.Restriction.BLOCK_PLACE, true);
       this.world.setExceptService(true);
-      this.world.restrict(ExWorld.Restriction.FIRE_SPREAD_SPEED, 0f);
-      this.world.restrict(ExWorld.Restriction.TNT_PRIME, true);
-      this.world.restrict(ExWorld.Restriction.ENTITY_EXPLODE, true);
-      this.world.restrict(ExWorld.Restriction.BLOCK_BURN_UP, true);
-      this.world.restrict(ExWorld.Restriction.FLINT_AND_STEEL, false);
-      this.world.restrict(ExWorld.Restriction.LIGHT_UP_INTERACTION, false);
-      this.world.restrict(ExWorld.Restriction.FLUID_PLACE, true);
-      this.world.restrict(ExWorld.Restriction.FLUID_COLLECT, true);
-      this.world.restrict(ExWorld.Restriction.ENTITY_EXPLODE, true);
-      this.world.restrict(ExWorld.Restriction.PLACE_IN_BLOCK, true);
-      this.world.restrict(ExWorld.Restriction.OPEN_INVENTORIES, List.of(Material.ANVIL, Material.DAMAGED_ANVIL,
+      this.world.setOption(ExWorldOption.ALLOW_BLOCK_BREAK, false);
+      this.world.setOption(ExWorldOption.ALLOW_ENTITY_BLOCK_BREAK, false);
+      this.world.setOption(ExWorldOption.ALLOW_BLOCK_PLACE, false);
+      this.world.setOption(ExWorldOption.FIRE_SPREAD_SPEED, 0f);
+      this.world.setOption(ExWorldOption.ALLOW_TNT_PRIME, false);
+      this.world.setOption(ExWorldOption.ENABLE_ENTITY_EXPLOSION, false);
+      this.world.setOption(ExWorldOption.BLOCK_BURN_UP, false);
+      this.world.setOption(ExWorldOption.ALLOW_FLINT_AND_STEEL, true);
+      this.world.setOption(ExWorldOption.ALLOW_LIGHT_UP_INTERACTION, true);
+      this.world.setOption(ExWorldOption.ALLOW_FLUID_PLACE, false);
+      this.world.setOption(ExWorldOption.ALLOW_FLUID_COLLECT, false);
+      this.world.setOption(ExWorldOption.ALLOW_PLACE_IN_BLOCK, false);
+      this.world.setOption(ExWorldOption.FORBIDDEN_BLOCK_INVENTORIES, List.of(Material.ANVIL, Material.DAMAGED_ANVIL,
           Material.CHIPPED_ANVIL));
 
       this.world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
